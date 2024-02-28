@@ -1,0 +1,12 @@
+amb_space 4
+inhom_equations 4
+1 2 0 0 0 
+0 1 2 0 -2 
+0 1 2 0 -2 
+0 0 1 2 -3 
+LatticePoints
+convert_equations
+nonnegative
+polynomial_equations 2
+x[2]^2 - x[1]*x[3] + x[3]^2 - x[2]*x[4] - 1;
+-x[2]^2 + x[1]*x[3] - x[3]^2 + x[2]*x[4] + 1;
