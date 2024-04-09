@@ -352,6 +352,7 @@ def find_partitions2(lst):
             yield [[first]] + smaller
 
 # Function to check if there's a sublist of M for each partition with distinct m_i for each subset
+'''
 def check_sublist_for_partitions(M, partitions):
     from itertools import combinations
     
@@ -368,28 +369,60 @@ def check_sublist_for_partitions(M, partitions):
                 valid_partitions.append([partition,m_combination])
                 break  # Once a valid combination is found, move to the next partition
     return valid_partitions
+'''    
+
+def check_sublist_for_partitions(M, partitions):
+    from itertools import combinations, permutations
+    from sage.all import lcm  # Ensure the use of SageMath's lcm function
+    
+    valid_partitions = []
+    checked_combinations = set()  # To avoid redundant checks
+    
+    for partition in partitions:
+        for combination in combinations(M, len(partition)):
+            # Generate all permutations of the current combination if not checked
+            for m_combination in permutations(combination):
+                if m_combination in checked_combinations:
+                    continue  # Skip if this permutation was already checked
+                
+                valid_for_this_combination = True
+                for m_i, subset in zip(m_combination, partition):
+                    lcm_value = lcm([p-1 for p in subset])
+                    if m_i < lcm_value / 2:
+                        valid_for_this_combination = False
+                        break
+                
+                # Record this permutation as checked to avoid redundancy
+                checked_combinations.add(m_combination)
+                
+                if valid_for_this_combination:
+                    valid_partitions.append([partition, m_combination])
+                    break  # Once a valid combination is found, no need to check further permutations for this partition
+    return valid_partitions
+
+
+def MultGrp(l):
+	ll=list(set(l))
+	ll.sort()
+	return [[i,l.count(i)] for i in ll]
     
 def Theorem3Check(l):
-    l0=[1]
-    l0.extend(l)
-    t=ListToType(l0)
+    t=MultGrp(l)
     s=sum([i^2 for i in l])
     lp=list(factor(s))
     r=len(l)
     p=lp[-1][0]
-    tm=max([tt[1] for tt in t[1:]])
+    tm=max([tt[1] for tt in t])
     return p<=2*tm+1
     
 def Theorem4Check(l):
 	n=sum([i^2 for i in l])
 	P0=list(factor(n))
-	P=[a[0] for a in P0]
-	ll=[1]
-	ll.extend(l)
-	t=ListToType(ll)
-	M=[a[1] for a in t] #print(P,M)
+	P=[a[0] for a in P0 if a[0] not in [2,3]]
+	t=MultGrp(l)
+	M=[a[1] for a in t if a[1]!=1]; #print(P,M)
 	# Generate all partitions
-	partitions = list(find_partitions2(P))
+	partitions = list(find_partitions2(P)); #print(partitions)
 	# Filter partitions based on the condition
 	valid_partitions = check_sublist_for_partitions(M, partitions)
 	return valid_partitions
