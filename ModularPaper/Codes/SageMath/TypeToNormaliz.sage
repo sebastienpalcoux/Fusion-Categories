@@ -20,6 +20,18 @@ def TypeToNormalizC2Co(l):
 		d[0]=-3
 		NormalizAlone(l,d)
 		
+def TypeToNormalizC2CoSingle(l):
+	T=ListToType(l)
+	Du=duality(T)
+	for d in Du:
+		d[0]=-3
+		NormalizSingle(l,d)
+
+def TypesToNormalizC2CoSingle(LL):
+	for l in LL:
+		print(l)
+		TypeToNormalizC2CoSingle(l)		
+		
 def TypesToNormalizC2Co(LL):
 	for l in LL:
 		print(l)
