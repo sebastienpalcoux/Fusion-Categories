@@ -416,6 +416,8 @@ def Theorem3Check(l):
     return p<=2*tm+1
     
 def Theorem4Check(l):
+	if l[-1]==1:
+		return ['ok, pointed']
 	n=sum([i^2 for i in l])
 	P0=list(factor(n))
 	P=[a[0] for a in P0 if a[0] not in [2,3]]
