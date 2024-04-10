@@ -11,7 +11,43 @@ def TypeToNormalizAlone(l):
 	T=ListToType(l)
 	Du=duality(T)
 	for d in Du:
-		NormalizAlone(l,d)		# dimension and associativity equations made by Normaliz	
+		NormalizAlone(l,d)		# dimension and associativity equations made by Normaliz
+
+def TypeToNormalizC2Co(l):
+	T=ListToType(l)
+	Du=duality(T)
+	for d in Du:
+		d[0]=-3
+		NormalizAlone(l,d)
+		
+def TypesToNormalizC2Co(LL):
+	for l in LL:
+		print(l)
+		TypeToNormalizC2Co(l)	
+		
+def TypeToNormalizCo(l):
+	T=ListToType(l)
+	Du=duality(T)
+	for d in Du:
+		d[0]=-1
+		NormalizAlone(l,d)
+
+def TypeToNormalizSingleCo(l):
+	T=ListToType(l)
+	Du=duality(T)
+	for d in Du:
+		d[0]=-1
+		NormalizSingle(l,d)
+		
+def TypesToNormalizCo(LL):
+	for l in LL:
+		print(l)
+		TypeToNormalizCo(l)	
+		
+def TypesToNormalizSingleCo(LL):
+	for l in LL:
+		print(l)
+		TypeToNormalizSingleCo(l)						
 
 def TypesToNormaliz(LL):
 	for l in LL:
@@ -22,12 +58,50 @@ def TypesToNormalizAlone(LL):
 	for l in LL:
 		print(l)
 		TypeToNormalizAlone(l)
+		
+def TypesToNormalizSelfCo(LL):
+	for l in LL:
+		print(l)
+		NormalizSelfCo(l)
+
+		
+def TypesToNormalizSelfSingle(LL):
+	for l in LL:
+		print(l)
+		NormalizSelfSingle(l)
+
+def TypesToNormalizStrong(LL):
+	for l in LL:
+		print(l)
+		NormalizStrong(l)
+
+def TypesToNormalizStrongFull(LL):
+	for l in LL:
+		print(l)
+		NormalizStrongFull(l)
+		
+''' # for modular C2-grading, we can do as follows:
+sage: LL=[]
+....: for l in L:
+....:     s=squareequipartitiontype(l)
+....:     for ll in s:
+....:         lll=[]
+....:         for ss in ll:
+....:             lll.extend(ss)
+....:         LL.append(lll)
+
+'''				
 
 def TypesToPreNormaliz(LL):
 	for l in LL:
 		print(l)
 		T=ListToType(l)
 		prenormaliz(T)
+
+def TypesToPreNormalizAlone(LL):
+	for l in LL:
+		print(l)
+		PreNormalizAlone(l)		
 
 def TypeToNormalizMNSD(l):		# it make sense to consider only the 12-term FrobRec (i.e. DoubleFrobRec), that is why Doublenormaliz
 	T=ListToType(l)		
@@ -162,8 +236,98 @@ def NormalizAlone(L,d):
 		s+=str(i)+','
 	s+=str(d[-1])+']'
 	f=open(s+'.in','w')
-	f.write('amb_space auto'+'\n'+'fusion_type'+'\n'+str(L)+'\n'+'fusion_duality'+'\n'+str(d)) #+'\n'+'FusionRings' #now useless, check
+	f.write('amb_space auto'+'\n'+'fusion_type'+'\n'+str(L)+'\n'+'fusion_duality'+'\n'+str(d)+'\n'+'FusionData')
 	f.close()
+	
+def NormalizSingle(L,d):
+	s='['
+	for i in L[:-1]:
+		s+=str(i)+','
+	s+=str(L[-1])+']['
+	for i in d[:-1]:
+		s+=str(i)+','
+	s+=str(d[-1])+']'
+	f=open(s+'.in','w')
+	f.write('amb_space auto'+'\n'+'fusion_type'+'\n'+str(L)+'\n'+'fusion_duality'+'\n'+str(d)+'\n'+'SingleLatticePoint')
+	f.close()		
+
+def NormalizSelfSingle(L):
+	s='['
+	for i in L[:-1]:
+		s+=str(i)+','
+	s+=str(L[-1])+']['
+	d=list(range(len(L)))
+	for i in d[:-1]:
+		s+=str(i)+','
+	s+=str(d[-1])+']'
+	f=open(s+'.in','w')
+	f.write('amb_space auto'+'\n'+'fusion_type'+'\n'+str(L)+'\n'+'fusion_duality'+'\n'+str(d)+'\n'+'SingleLatticePoint')
+	f.close()
+	
+def NormalizSelfCo(L):
+	s='['
+	for i in L[:-1]:
+		s+=str(i)+','
+	s+=str(L[-1])+']['
+	d=list(range(len(L)))
+	d[0]=-1
+	for i in d[:-1]:
+		s+=str(i)+','
+	s+=str(d[-1])+']'
+	f=open(s+'.in','w')
+	f.write('amb_space auto'+'\n'+'fusion_type'+'\n'+str(L)+'\n'+'fusion_duality'+'\n'+str(d)+'\n'+'FusionData')
+	f.close()
+
+def NormalizSelfCo(L):
+	s='['
+	for i in L[:-1]:
+		s+=str(i)+','
+	s+=str(L[-1])+']['
+	d=list(range(len(L)))
+	d[0]=-3
+	for i in d[:-1]:
+		s+=str(i)+','
+	s+=str(d[-1])+']'
+	f=open(s+'.in','w')
+	f.write('amb_space auto'+'\n'+'fusion_type'+'\n'+str(L)+'\n'+'fusion_duality'+'\n'+str(d)+'\n'+'FusionData')
+	f.close()	
+
+def NormalizStrong(L):
+	s='['
+	for i in L[:-1]:
+		s+=str(i)+','
+	s+=str(L[-1])+']['
+	d=list(range(len(L)))
+	d[0]=-3
+	for i in d[:-1]:
+		s+=str(i)+','
+	s+=str(d[-1])+']'
+	f=open(s+'.in','w')
+	f.write('amb_space auto'+'\n'+'fusion_type'+'\n'+str(L)+'\n'+'fusion_duality'+'\n'+str(d)+'\n'+'SingleLatticePoint')
+	f.close()
+
+def NormalizStrongFull(L):
+	s='['
+	for i in L[:-1]:
+		s+=str(i)+','
+	s+=str(L[-1])+']['
+	d=list(range(len(L)))
+	d[0]=-3
+	for i in d[:-1]:
+		s+=str(i)+','
+	s+=str(d[-1])+']'
+	f=open(s+'.in','w')
+	f.write('amb_space auto'+'\n'+'fusion_type'+'\n'+str(L)+'\n'+'fusion_duality'+'\n'+str(d)+'\n'+'FusionData')
+	f.close()
+	
+def PreNormalizAlone(L):
+	s='['
+	for i in L[:-1]:
+		s+=str(i)+','
+	s+=str(L[-1])+']'
+	f=open(s+'.in','w')
+	f.write('amb_space auto'+'\n'+'fusion_type_for_partition'+'\n'+str(L)) #+'\n'+'FusionRings' #now useless, check
+	f.close()	
 
 
 def System(L,d,out):
@@ -300,6 +464,19 @@ def ListToFusion(LL,L,d):
 		M=mat(l)
 		if not M in ISOM:
 			print(M)
+			BL.append(M)
+			ISOM.extend(isomorphicclass(M,T,d))
+	return BL
+
+def ListToFusionBis(LL,L,d):
+	mat=Makemat(L,d)
+	BL=[]; ISOM=[]
+	T=ListToType(L)
+	for i in range(len(LL)):
+		print(i)
+		M=mat(LL[i])
+		if not M in ISOM:
+			#print(M)
 			BL.append(M)
 			ISOM.extend(isomorphicclass(M,T,d))
 	return BL
@@ -581,38 +758,41 @@ def HalfSystem(L,d,out):
 						V[ii][jj][kk]=v
 						Vn[ii][jj][kk]=n
 					n+=1
-	A=[[0 for j in range(n)] for i in range(r*r)]
-	Ve=[]
-	for i in range(r):
-		for j in range(r):
-			Ve.append(L[i]*L[j])
-			for k in range(r):
-				nn=Vn[i][j][k]
-				if nn<0:
-					nn+=2
-					Ve[-1]-=L[k]*nn
-				else:
-					A[r*i+j][nn]+=L[k]
-	AA=[]
-	VVe=[]
-	for i in range(r*r):
-		if A[i]!=[0 for j in range(n)]:
-			VVe.append(Ve[i])
-			AA.append(A[i][1:])		# [1:] is just to fix n=1
-		elif Ve[i]!=0:	
-			return [[],[],[],[]]
-	Assoc=[]
-	for i in range(r):
-		for j in range(r):
-			for k in range(r):
-				for t in range(r):
-					eq=sum([V[i][j][s] * V[s][k][t] for s in range(r)]) - sum([V[j][k][s] * V[i][s][t] for s in range(r)])
-					if eq!=0:
-						Assoc.append(eq)
+	if out==0:				
+		A=[[0 for j in range(n)] for i in range(r*r)]
+		Ve=[]
+		for i in range(r):
+			for j in range(r):
+				Ve.append(L[i]*L[j])
+				for k in range(r):
+					nn=Vn[i][j][k]
+					if nn<0:
+						nn+=2
+						Ve[-1]-=L[k]*nn
+					else:
+						A[r*i+j][nn]+=L[k]
+		AA=[]
+		VVe=[]
+		for i in range(r*r):
+			if A[i]!=[0 for j in range(n)]:
+				VVe.append(Ve[i])
+				AA.append(A[i][1:])		# [1:] is just to fix n=1
+			elif Ve[i]!=0:	
+				return [[],[],[],[]]
+		Assoc=[]
+		for i in range(r):
+			for j in range(r):
+				for k in range(r):
+					for t in range(r):
+						eq=sum([V[i][j][s] * V[s][k][t] for s in range(r)]) - sum([V[j][k][s] * V[i][s][t] for s in range(r)])
+						if eq!=0:
+							Assoc.append(eq)		
 	if out==0:
 		return [AA,VVe,V,set(Assoc)]
 	if out==1:
 		return [vvar,V]
+		
+
 
 
 def HalfFrobRecList(d,l):
@@ -661,6 +841,7 @@ def DoubleMakemat(L,d):
 			N.append(NN)
 		return N
 	return mat
+	
 
 def DoubleTypesToNormaliz(LT):
 	for T in LT:
@@ -758,42 +939,42 @@ def DoubleSystem(L,d,out):
 						V[ii][jj][kk]=v
 						Vn[ii][jj][kk]=n
 					n+=1
-	A=[[0 for j in range(n)] for i in range(r*r)]
-	Ve=[]
-	for i in range(r):
-		for j in range(r):
-			Ve.append(L[i]*L[j])
-			for k in range(r):
-				nn=Vn[i][j][k]
-				if nn<0:
-					nn+=2
-					Ve[-1]-=L[k]*nn
-				else:
-					A[r*i+j][nn]+=L[k]
-	AA=[]
-	VVe=[]
-	for i in range(r*r):
-		if A[i]!=[0 for j in range(n)]:
-			VVe.append(Ve[i])
-			AA.append(A[i][1:])		# [1:] is just to fix n=1
-		elif Ve[i]!=0:	
-			return [[],[],[],[]]
-	Assoc=[]
-	for i in range(r):
-		for j in range(i,r):			# reduction of the associativity in the commutative case
-			for k in range(j,r):
-				for t in range(r):
-					eq1=sum([V[i][j][s] * V[s][k][t] for s in range(r)]) - sum([V[j][k][s] * V[i][s][t] for s in range(r)])
-					eq2=sum([V[j][i][s] * V[s][k][t] for s in range(r)]) - sum([V[i][k][s] * V[j][s][t] for s in range(r)])
-					if eq1!=0:
-						Assoc.append(eq1)
-					if eq2!=0:
-						Assoc.append(eq2)
+	if out==0:				
+		A=[[0 for j in range(n)] for i in range(r*r)]
+		Ve=[]
+		for i in range(r):
+			for j in range(r):
+				Ve.append(L[i]*L[j])
+				for k in range(r):
+					nn=Vn[i][j][k]
+					if nn<0:
+						nn+=2
+						Ve[-1]-=L[k]*nn
+					else:
+						A[r*i+j][nn]+=L[k]
+		AA=[]
+		VVe=[]
+		for i in range(r*r):
+			if A[i]!=[0 for j in range(n)]:
+				VVe.append(Ve[i])
+				AA.append(A[i][1:])		# [1:] is just to fix n=1
+			elif Ve[i]!=0:	
+				return [[],[],[],[]]
+		Assoc=[]
+		for i in range(r):
+			for j in range(i,r):
+				for k in range(j,r):	# reduction of the associativity in the commutative case
+					for t in range(r):
+						eq1=sum([V[i][j][s] * V[s][k][t] for s in range(r)]) - sum([V[j][k][s] * V[i][s][t] for s in range(r)])
+						eq2=sum([V[j][i][s] * V[s][k][t] for s in range(r)]) - sum([V[i][k][s] * V[j][s][t] for s in range(r)])
+						if eq1!=0:
+							Assoc.append(eq1)
+						if eq2!=0:
+							Assoc.append(eq2)	
 	if out==0:
 		return [AA,VVe,V,set(Assoc)]
 	if out==1:
 		return [vvar,V]
-
 
 def DoubleFrobRecList(d,l):
 	[i,j,k]=l
