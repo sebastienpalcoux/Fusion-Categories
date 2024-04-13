@@ -421,6 +421,8 @@ def Theorem4Check(l):
 	n=sum([i^2 for i in l])
 	P0=list(factor(n))
 	P=[a[0] for a in P0 if a[0] not in [2,3]]
+	if P==[]:
+		return True
 	t=MultGrp(l)
 	M=[a[1] for a in t if a[1]!=1]; #print(P,M)
 	# Generate all partitions
