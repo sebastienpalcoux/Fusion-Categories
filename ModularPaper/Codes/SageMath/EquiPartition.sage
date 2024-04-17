@@ -315,7 +315,7 @@ def Rest(LL2,LL3,L4):
 	RL.sort()
 	return RL
 	
-def AllCriteria(L0):		# please exclude pointed to avoid problem...
+def GradingCriteria(L0):		# please exclude pointed to avoid problem...
 	L1=ExistenceUniversalGrading(L0)	#0
 	[L2,LL2]=CandidateToExclusion(L1)	#1
 	[L3,LL3]=Criterion1(L2)			#2
@@ -327,8 +327,8 @@ def AllCriteria(L0):		# please exclude pointed to avoid problem...
 
 # %attach Nutstore/1/SAGE/TimeFunction.sage
 
-def AllCriteriaTime(l,t):
-	ti=TimeFunction(AllCriteria,[l],t)
+def GradingCriteriaTime(l,t):
+	ti=TimeFunction(GradingCriteria,[l],t)
 	if ti==[]:
 		return False
 	return True
