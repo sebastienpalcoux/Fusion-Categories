@@ -1,0 +1,100 @@
+sage: L=[]; c=0
+....: with open('UpToRank15PAHR.txt') as f:
+....:     for line in f:
+....:         t = eval(line); c+=1
+....:         l=[int(t[-1]/i) for i in t]
+....:         l.sort()
+....:         if not l in L:
+....:             L.append(l)
+....: 
+sage: L.sort()
+sage: c; len(L)
+3100		# We start from 3100 Egyptian Fractions giving 3094 types (some Egyptian Fractions can have the same type)
+3094
+sage: C=[0 for i in range(15)]
+sage: for l in L:
+....:     C[len(l)-1]+=1
+....: 
+sage: C
+[0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 36, 250, 2266, 45, 491]	# counting per rank (rk p>14/2 implies p>=11 as 9 non-prime, that explains the irregularity)
+
+sage: %attach /home/sebastien/Nutstore Files/SAGE/TypeCriteria.sage
+....: %attach /home/sebastien/Nutstore Files/SAGE/TypeToNormaliz.sage
+....: %attach /home/sebastien/Nutstore Files/SAGE/TimeFunction.sage
+....: %attach /home/sebastien/Nutstore Files/SAGE/EquiPartition.sage
+sage: L1=[]
+....: for l in L:
+....:     if GcdCriterion(l):
+....:         L1.append(l)
+....: 
+sage: len(L1)
+2336
+sage: L2=[]
+....: for l in L1:
+....:     if TypeTest(ListToType(l)):
+....:         L2.append(l)
+....: 
+sage: len(L2)
+1688
+sage: L3=[]
+....: for l in L2:
+....:     print(l)
+....:     if LocalCriterionAll(ListToType(l),1):
+....:         L3.append(l)
+....: 
+sage: len(L3)
+1256
+sage: LP=[]; LNP=[]
+....: for l in L3:
+....:     if l[1]>1:
+....:         LP.append(l)
+....:     else:
+....:         LNP.append(l)
+....: 
+sage: len(LP); len(LNP)
+894
+362
+sage: %time LNP2=GradingCriteria(LNP); len(LNP2)
+CPU times: user 13.6 s, sys: 1.74 ms, total: 13.6 s
+Wall time: 13.7 s
+33
+
+sage: TypesToPreNormalizAlone(LP); TypesToPreNormalizAlone(LNP2)
+..... 894 + 33 = 927 types
+for i in *; do timeout 1s normaliz -x=4 -c "$i"; done
+# It rests 16 uncompleted types + 4 with solutions
+for i in *; do timeout 10s normaliz -x=4 -c "$i"; done
+# It rests 13 uncompleted types + 4 with solutions
+for i in *; do timeout 100s normaliz -x=4 -c "$i"; done
+# It rests 6 uncompleted types + 4 with solutions
+for i in *; do timeout 1000s normaliz -x=4 -c "$i"; done
+# It rests 4 uncompleted types + 4 with solutions
+# uncompleted:
+[1,105,175,182,300,390,3900,6825,9100,9100,9100,9100,9100,9100,13650],
+[1,1,2,12,12,84,105,105,140,140,140,210,210],
+[1,70,70,108,126,135,378,945,945,1260,1890,1890,1890],
+[1,70,75,150,168,175,350,525,1400,1400,2100,2100,2100],
+# with solution (partition version):
+[1,1,1,6,6,12,12,33,44,44,44,44,44,44,66],
+[1,1,2,12,12,14,14,14,21,21,42,42,42],
+[1,1,2,12,12,21,21,28,28,28,42,42],
+[1,2,2,2,3,3,3,3,14,14,21,21,21],
+
+# we can recompute with full version single solution (or grasp what is written in the other files):
+120 files from 8 types
+for i in *; do timeout 10s normaliz -x=4 -c "$i"; done
+# It rests 23 files from 5 types
+for i in *; do timeout 100s normaliz -x=4 -c "$i"; done
+# It rests 15 files from 3 types:
+[1,1,2,12,12,14,14,14,21,21,42,42,42],		#  excluded theoretically (see below)
+[1,70,75,150,168,175,350,525,1400,1400,2100,2100,2100],
+[1,105,175,182,300,390,3900,6825,9100,9100,9100,9100,9100,9100,13650],
+# 15 - 7 = 8
+for i in *; do timeout 30m normaliz -x=4 -c "$i"; done
+# It excluded the remaining 2 perfect types in about two hours.
+
+# The non-perfect one is excluded because its modular partition must be [[1, 1, 2, 12, 12, 14, 14, 14, 21, 21, 42], [42, 42]] and 
+the neutral part has FPdim = 2^3 * 3^2 * 7^2, the modularization of the neutral part must have a pointed part of size 3, and to keep it half-Frob, it should split every multiple of 4, so we get the type: [1,1,1,6,6,6,6,7,7,14,21,21,21] or [1,1,1,6,6,6,6,7,7,7,7,7,7,21,21,21] 
+The first has no modular partition, and the second, only [[1, 1, 1, 6, 6, 6, 6, 21], [7, 7, 7, 21], [7, 7, 7, 21]]
+The neutral component has FPdim 2^2 * 3 * 7^2, so the modularisation should split the multiple of 3, we get the type2:
+[[1,1],[2,12],[7,3]] of FPdim 2^2 * 7^2, so non-trivial perfect and solvable, contradiction.
