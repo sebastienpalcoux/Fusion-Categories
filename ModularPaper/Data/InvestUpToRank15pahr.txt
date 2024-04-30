@@ -1,0 +1,65 @@
+sage: L=[]; c=0
+....: with open('UpToRank15pahr.txt') as f:
+....:     for line in f:
+....:         t = eval(line); c+=1
+....:         l=[int(t[-1]/i) for i in t]
+....:         l.sort()
+....:         if not l in L:
+....:             L.append(l)
+....: 
+sage: L.sort()
+sage: c; len(L)
+3100		# We start from 3100 Egyptian Fractions giving 3094 types (some Egyptian Fractions can have the same type)
+3094
+sage: C=[0 for i in range(15)]
+sage: for l in L:
+....:     C[len(l)-1]+=1
+....: 
+sage: C
+[0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 36, 250, 2266, 45, 491]	# counting per rank (rk p>14/2 implies p>=11 as 9 non-prime, that explains the irregularity)
+
+sage: %attach /home/sebastien/Nutstore Files/SAGE/TypeCriteria.sage
+....: %attach /home/sebastien/Nutstore Files/SAGE/TypeToNormaliz.sage
+
+sage: %time L2=TypesCriteria(L)
+CPU times: user 980 ms, sys: 2.72 s, total: 3.7 s
+Wall time: 8.01 s
+sage: len(L); len(L2)
+3094
+1256
+sage: %time L3=GradingCriteria(L2)
+CPU times: user 1.04 s, sys: 2.6 s, total: 3.64 s
+Wall time: 8.09 s
+sage: len(L3)
+894
+sage: TypesToPreNormalizAlone(L3)
+for i in *; do timeout 0.1s normaliz -x=4 -c "$i"; done
+# There remain 23 uncompleted types + 1 with solution
+for i in *; do timeout 1s normaliz -x=4 -c "$i"; done
+# There remain 13 uncompleted types + 1 with solution
+for i in *; do timeout 10s normaliz -x=4 -c "$i"; done
+# There remain 11 uncompleted types + 1 with solution
+for i in *; do timeout 100s normaliz -x=4 -c "$i"; done
+# There remain 4 uncompleted types + 1 with solution
+for i in *; do timeout 1000s normaliz -x=4 -c "$i"; done
+# There remain 3 uncompleted types + 1 with solution
+L=[[1,105,175,182,300,390,3900,6825,9100,9100,9100,9100,9100,9100,13650],
+[1,70,70,108,126,135,378,945,945,1260,1890,1890,1890],
+[1,70,75,150,168,175,350,525,1400,1400,2100,2100,2100],
+[1,2,2,2,3,3,3,3,14,14,21,21,21]]
+
+
+# Now consider the full version with single solution:
+sage: %attach AfterPartition2.sage
+sage: len(L)
+4
+sage: %attach /home/sebastien/Nutstore Files/SAGE/TypeToNormaliz.sage
+sage: TypesToNormalizSingleCo(L)
+# 40 files from 4 types
+for i in *; do timeout 10s normaliz -x=4 -c "$i"; done
+# There remain 8 files from 2 types
+[1,70,75,150,168,175,350,525,1400,1400,2100,2100,2100],
+[1,105,175,182,300,390,3900,6825,9100,9100,9100,9100,9100,9100,13650]
+# no limit computation
+for i in *; do normaliz -x=4 -c "$i"; done
+# It excluded the remaining 2 (perfect) types in about two hours.
