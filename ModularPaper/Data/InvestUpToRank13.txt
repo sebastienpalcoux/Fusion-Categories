@@ -101,13 +101,13 @@ sage: TypesToNormalizCo(L)		# we choose FusionData option instead of SingleLatti
 #572 files from 37 types
 
 for i in *; do timeout 10s normaliz -x=4 -c "$i"; done
-# There remain 56 uncompleted files from 14 types + 81 with solutions form 22 types
+# There remain 56 uncompleted files from 14 types + 81 with solutions from 22 types
 
 for i in *; do timeout 100s normaliz -x=4 -c "$i"; done
-# There remain 29 uncompleted files from 7 types + 101 with solutions form 23 types
+# There remain 29 uncompleted files from 7 types + 101 with solutions from 23 types
 
 for i in *; do timeout 1000s normaliz -x=4 -c "$i"; done
-# There remain 23 uncompleted files from 4 types + 106 with solutions form 25 types
+# There remain 23 uncompleted files from 4 types + 106 with solutions from 25 types
 
 ## Use of HPC to complete the rest (some are hard)
 # important to note that some items can be excluded by excluding the neutral component
@@ -144,8 +144,7 @@ L=[[1, 1, 1, 1, 2, 2, 2],
 The perfect are excluded at this point. In the iteration of GradingCriteria, any perfect of rank <=13 arising can be excluded.
  
  
-Be careful, there are mistake in the previous version, such as the exclusion by hand of [1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 6].
-Indeed, one of its modular partition is [[1, 1, 2, 2, 2, 2, 3, 3, 3, 3], [3, 3, 6]], so the neutral component may have a fermion.
+Be careful, the modular partition is [[1, 1, 2, 2, 2, 2, 3, 3, 3, 3], [3, 3, 6]], cannot be excluded by GradingCriterion because the neutral component may have a fermion.
 Idem for [1, 1, 2, 2, 2, 2, 3, 3, 6, 6, 6, 6, 6] and [1, 1, 2, 2, 2, 2, 6, 6, 6, 6, 9, 9, 18]
 
 
