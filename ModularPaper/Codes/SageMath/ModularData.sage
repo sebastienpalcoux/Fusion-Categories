@@ -159,6 +159,153 @@ def ExtendedCyclo(M):
 		elif not K.is_abelian():		
 			return False
 	return True
+	
+	
+################################ New Part ###########
+
+### Modular Grading #####
+
+## Used as post-processing to filter the fusion rings with a modular grading
+
+def GradingDetector(M):
+	r=len(M)
+	E=[]
+	for i in range(1,r):
+		for j in range(i,r):
+			L=set([])
+			for k in range(r):
+				if M[i][j][k]!=0:
+					L.add(k)
+			if len(L)>1: 
+				if not L in E:
+					c=0
+					EE=[]
+					for LL in E:
+						if L & LL:
+							L.update(LL)
+						else:
+							EE.append(LL)
+					EE.append(L)
+					E=EE	
+	E=[list(s) for s in E]
+	E.sort()						
+	return E
+	
+def PointedPart(M):
+	P=[]
+	r=len(M)
+	for i in range(r):
+		m=M[i]
+		if set([r-l.count(0) for l in m])==set([1]):
+			P.append(i)
+	return P	
+
+def GradingGroup(M,gd):
+	#gd=GradingDetector(M)
+	if len(gd)==1:
+		return [[[1]]]
+	else:
+		L=[]
+		for li in gd:
+			LL=[]	
+			for lj in gd:
+				LLL=[]
+				for lk in gd:
+					s=sum([M[ii][jj][kk] for ii in li for jj in lj for kk in lk])
+					if s!=0:	
+						LLL.append(1)
+					else:
+						LLL.append(0)		
+				LL.append(LLL)
+			L.append(LL)
+	return L
+
+
+def PointedGroup(M,P):
+	#P=PointedPart(M)
+	return [[[M[i][j][k] for k in P] for j in P] for i in P]
+
+
+def PointedGrading(M,GG,PG):
+	#GG=GradingGroup(M)
+	#PG=PointedGroup(M)
+	ord=len(GG)
+	if len(PG)!=ord:
+		return False	
+	if ord<16:				# (abelian) group of order < 16 is completely determined by its order and its elements order
+		id=identity_matrix(ord)
+		D=divisors(ord)
+		LD1=[]; LD2=[]
+		for d in D[1:-1]:
+			LD1.append([matrix(m)^d for m in GG].count(id))
+			LD2.append([matrix(m)^d for m in PG].count(id))
+		return LD1==LD2
+	else:
+		print('the group has order above 15, need more work')
+		return True		
+	
+# the grading group must be isomorphic to the pointed group, good filter, then check that the FPdims are the same for each component
+	
+def ModularGrading(M,dim):
+	gd=GradingDetector(M)
+	pp=PointedPart(M)
+	p=len(pp)
+	DD=sum([i**2 for i in dim])
+	if len(gd)!=p or DD%(p)!=0:
+		return False
+	else:
+		pa=DD//(p)
+		c=0
+		for l in gd:
+			dl=sum([dim[i]**2 for i in l])
+			if dl!=pa:
+				c=1
+				break
+		if c==1:
+			return False		
+		else:
+			GG=GradingGroup(M,gd)
+			PG=PointedGroup(M,pp)
+			return PointedGrading(M,GG,PG)	
+		
+def Counter():
+	import os
+	folder_path = os.getcwd()  # Get the current working directory
+	# Loop over all files in the folder
+	S1=[[] for i in range(13)]; S2=[[] for i in range(13)]; S3=[[] for i in range(13)]; FD=[[] for i in range(13)];
+	for filename in os.listdir(folder_path):
+		if filename.endswith(".fus"):  # Check if the file has a .fus extension
+			file_path = os.path.join(folder_path, filename)  # Get the full path of the file
+			with open(file_path) as f:
+				c=0
+				base_name, extension = os.path.splitext(filename)#print(base_name)
+				first_part = base_name.split(']', 1)[0] + ']'
+				dim=eval(first_part)
+				dim.sort(); #print(t,dim)				
+				for line in f:
+					t = eval(line); r=len(t)
+					if ModularGrading(t,dim) and (not NonCo(t)) and ExtendedCyclo(t) and ModularCriterion(t,0.0000001) and SelfTransposable(t):
+						c+=1
+						FD[len(t)-1].append([dim,t])
+						if not dim in S3[len(t)-1]:
+							S3[len(t)-1].append(dim)
+						if not base_name in S2[len(t)-1]:
+							S2[len(t)-1].append(base_name)
+				if c!=0:				
+					S1[len(t)-1].append(c)	
+	C1=[sum(l) for l in S1]				
+	C2=[len(l) for l in S2]	
+	C3=[len(l) for l in S3]
+	for fd in FD:
+		fd.sort()
+	print(FD)							
+	return [C1,sum(C1),C2,sum(C2),C3,sum(C3),S1,S2,S3]	 			
+
+
+
+
+################################	
+	
 
 def SortFusionData(M):
 	#print(M)
@@ -872,7 +1019,7 @@ def STmatrix2(MZ):							# much better than STmatrix?			## nn is for the conduct
 				MM=Verlinde(S)		# Here keep S, do not put NS. We just moved from before TestST to here, relevant?
 				if MM==M:		# always True?
 					#print(M)
-					MD.append([M,S,TT,dim,orS,orT,c,nu2]); print([M,S,TT,dim,orS,orT,c,nu2]) 
+					MD.append([M,S,TT,dim,orS,orT,c,nu2]); print([M,S,TT,dim,orS,orT,c,nu2]) # print([Verlinde(NS),NS,NT,dim,orS,orT,c,nu2]);
 					BL.extend(IsoClassModularData(NS,NT))		# replace by normal form??
 	print(len(MD))
 	return MD
@@ -987,6 +1134,12 @@ def TestST(S,T,M,dim,TT,D,C):		# in comment of this code 'excluded Theorem 2.1 (
 				print('excluded Theorem 2.1 (8.3)')
 				return False	
 	return [orS,orT,c,nu2]
+	
+def FrobeniusSchurIndicators(dim,TT,M,n):
+	T=ListToT(TT)
+	r=len(dim)
+	D=sum([a^2 for a in dim])
+	return [sum([M[j][k][i]*(dim[j]*(T[j]**n))*((dim[k]*(T[k]**n)).conjugate()) for j in range(r) for k in range(r)])/D for i in range(r)]	
 
 def MagicCriterion(FD):
 	M=SortFusionData(FD)
