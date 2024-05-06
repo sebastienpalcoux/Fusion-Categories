@@ -1,0 +1,262 @@
+## Warning: we are considering the NON-POINTED case (the pointed case will be done separately) 
+
+
+sage: %attach ListPossibleTypes.sage
+sage: [len(ll)-1 for ll in LPT]
+[0, 0, 0, 0, 1, 2, 2, 6, 10, 41, 143, 811, 7996]	#non-pointed
+sage: sum([len(ll)-1 for ll in LPT])
+9012
+sage: L0=[]
+....: for ll in LPT:
+....:     for l in ll:
+....:         s=list(factor(sum([i**2 for i in l])))
+....:         if l[-1]>1 and s[-1][0]<=len(l)/2:	# non-pointed and Strong Theorem...
+....:             L0.append(l)
+sage: L0.sort()
+sage: len(L0)
+1722							# very strong!
+sage: C=[0 for i in range(13)]
+sage: for l in L0:
+....:     C[len(l)-1]+=1
+sage: C
+[0, 0, 0, 0, 1, 2, 2, 5, 10, 31, 86, 292, 1293]			# no need to mention?
+sage: %attach /home/sebastien/Nutstore Files/SAGE/TypeCriteria.sage
+....: %attach /home/sebastien/Nutstore Files/SAGE/TypeToNormaliz.sage
+
+sage: %time L2=TypesCriteria(L0)
+CPU times: user 628 ms, sys: 3.69 s, total: 4.32 s
+Wall time: 9.07 s
+sage: sage: len(L0); len(L2)
+1722
+794
+%time L3=GradingCriteria(L2)
+CPU times: user 860 ms, sys: 4.4 s, total: 5.26 s
+Wall time: 11.3 s
+sage: len(L3)
+439
+sage: TypesToPreNormalizAlone(L3)
+for i in *; do timeout 0.1s normaliz -x=4 -c "$i"; done
+# There remain 13 uncompleted types + 30 ones with solutions
+
+for i in *; do timeout 1s normaliz -x=4 -c "$i"; done
+# There remain 6 uncompleted types + 32 ones with solutions
+
+for i in *; do timeout 10s normaliz -x=4 -c "$i"; done
+# There remain 3 uncompleted types + 35 ones with solutions
+
+The three uncompleted:
+[[1,1,5,5,6,6,20,24,30,40,60,60,60],	# excluded with less than 1000s
+[1,18,20,20,27,30,36,135,135,180,270,270,270],
+[1,9,12,15,18,20,20,30,45,60,90,90,90]]
+
+There remain 37 types: 10 perfect and 27 non-perfect
+[[1, 1, 1, 1, 2, 2, 2],
+ [1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2],
+ [1, 1, 1, 1, 2, 2, 4, 4, 4, 4, 4, 4, 6],
+ [1, 1, 1, 1, 2, 4, 4, 4, 4, 6, 6],
+ [1, 1, 1, 1, 3, 3, 3, 3, 4, 4, 6, 6],
+ [1, 1, 1, 1, 4, 4, 4, 4, 4, 4, 10, 10, 10],
+ [1, 1, 1, 1, 4, 4, 6, 6, 6],
+ [1, 1, 1, 1, 4, 4, 6, 6, 6, 6, 6, 6, 6],
+ [1, 1, 1, 1, 4, 4, 6, 12, 12, 12, 12, 18, 18],
+ [1, 1, 1, 1, 4, 4, 12, 12, 18, 18, 18],
+ [1, 1, 1, 1, 4, 4, 12, 12, 36, 36, 54, 54, 54],
+ [1, 1, 1, 2, 2, 2, 2, 2, 2, 3],
+ [1, 1, 1, 3, 4, 4, 4, 4, 4, 4, 6],
+ [1, 1, 1, 3, 12, 12, 20, 20, 20, 20, 20, 20, 30],
+ [1, 1, 2, 2, 2, 2, 2, 3, 3, 4, 4, 6, 6],
+ [1, 1, 2, 2, 2, 2, 3, 3],
+ [1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3],
+ [1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 6],
+ [1, 1, 2, 2, 2, 2, 3, 3, 6],
+ [1, 1, 2, 2, 2, 2, 3, 3, 6, 6, 6, 6],
+ [1, 1, 2, 2, 2, 2, 3, 3, 6, 6, 6, 6, 6],
+ [1, 1, 2, 2, 2, 2, 6, 6, 6, 6, 9, 9],
+ [1, 1, 2, 2, 2, 2, 6, 6, 6, 6, 9, 9, 18],
+ [1, 1, 2, 3, 3, 4, 4, 4, 6, 6],
+ [1, 1, 2, 3, 3, 6, 6, 8, 8, 8, 12, 12],
+ [1, 1, 2, 3, 3, 24, 30, 30, 40, 40, 40, 60, 60],
+ [1, 1, 2, 6, 6, 6, 6, 10, 10, 10, 15, 15],
+ [1, 2, 2, 3, 4, 4, 5, 5, 20, 20, 30, 30, 30],
+ [1, 2, 2, 3, 4, 4, 15, 15, 20, 30, 30, 30],
+ [1, 2, 2, 3, 4, 4, 15, 15, 20, 30, 30, 30, 60],
+ [1, 3, 3, 3, 5, 5, 6, 6, 10, 10, 10, 15, 15],
+ [1, 3, 3, 5, 24, 24, 30, 48, 60, 80, 120, 120, 120],
+ [1, 5, 5, 6, 10, 10, 10, 12, 12, 15, 30, 30, 30],
+ [1, 5, 6, 10, 10, 12, 12, 15, 15, 20, 20, 30, 30],
+ [1, 9, 12, 15, 18, 20, 20, 30, 45, 60, 90, 90, 90],
+ [1, 18, 20, 20, 27, 30, 36, 135, 135, 180, 270, 270, 270],
+ [1, 20, 20, 27, 27, 30, 45, 54, 180, 180, 270, 270, 270]]
+
+# the simple are already all excluded at this step, good!!!
+
+sage: C=[0 for i in range(13)]
+sage: for l in L:
+....:     C[len(l)-1]+=1
+....: 
+sage: C
+[0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 4, 7, 20]
+
+sage: TypesToNormalizCo(L)		# we choose FusionData option instead of SingleLatticePoint (the use of automorphism group can be conveniant), try also the other way.
+#572 files from 37 types
+
+for i in *; do timeout 10s normaliz -x=4 -c "$i"; done
+# There remain 56 uncompleted files from 14 types + 81 with solutions form 22 types
+
+for i in *; do timeout 100s normaliz -x=4 -c "$i"; done
+# There remain 29 uncompleted files from 7 types + 101 with solutions form 23 types
+
+for i in *; do timeout 1000s normaliz -x=4 -c "$i"; done
+# There remain 23 uncompleted files from 4 types + 106 with solutions form 25 types
+
+## Use of HPC to complete the rest (some are hard)
+# important to note that some items can be excluded by excluding the neutral component
+e.g. [1,1,2,3,3,24,30,30,40,40,40,60,60][-3,1,2,3,4,5,6,7,8,10,9,11,12] because [1,1,2,3,3,24,30,30,40,40,40][-1,1,2,3,4,5,6,7,8,10,9] has no solution
+
+The remaining 26 types:
+L=[[1, 1, 1, 1, 2, 2, 2],
+ [1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2],
+ [1, 1, 1, 1, 2, 2, 4, 4, 4, 4, 4, 4, 6],
+ [1, 1, 1, 1, 2, 4, 4, 4, 4, 6, 6],
+ [1, 1, 1, 1, 3, 3, 3, 3, 4, 4, 6, 6],
+ [1, 1, 1, 1, 4, 4, 4, 4, 4, 4, 10, 10, 10],
+ [1, 1, 1, 1, 4, 4, 6, 6, 6],
+ [1, 1, 1, 1, 4, 4, 6, 6, 6, 6, 6, 6, 6],
+ [1, 1, 1, 1, 4, 4, 6, 12, 12, 12, 12, 18, 18],
+ [1, 1, 1, 1, 4, 4, 12, 12, 18, 18, 18],
+ [1, 1, 1, 1, 4, 4, 12, 12, 36, 36, 54, 54, 54],
+ [1, 1, 1, 2, 2, 2, 2, 2, 2, 3],
+ [1, 1, 1, 3, 4, 4, 4, 4, 4, 4, 6],
+ [1, 1, 1, 3, 12, 12, 20, 20, 20, 20, 20, 20, 30],
+ [1, 1, 2, 2, 2, 2, 3, 3],
+ [1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3],
+ [1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 6],
+ [1, 1, 2, 2, 2, 2, 3, 3, 6],
+ [1, 1, 2, 2, 2, 2, 3, 3, 6, 6, 6, 6],
+ [1, 1, 2, 2, 2, 2, 3, 3, 6, 6, 6, 6, 6],
+ [1, 1, 2, 2, 2, 2, 6, 6, 6, 6, 9, 9],
+ [1, 1, 2, 2, 2, 2, 6, 6, 6, 6, 9, 9, 18],
+ [1, 1, 2, 3, 3, 4, 4, 4, 6, 6],
+ [1, 1, 2, 3, 3, 6, 6, 8, 8, 8, 12, 12],
+ [1, 1, 2, 3, 3, 24, 30, 30, 40, 40, 40, 60, 60],
+ [1, 1, 2, 6, 6, 6, 6, 10, 10, 10, 15, 15]]
+
+The perfect are excluded at this point. In the iteration of GradingCriteria, any perfect of rank <=13 arising can be excluded.
+ 
+ 
+Be careful, there are mistake in the previous version, such as the exclusion by hand of [1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 6].
+Indeed, one of its modular partition is [[1, 1, 2, 2, 2, 2, 3, 3, 3, 3], [3, 3, 6]], so the neutral component may have a fermion.
+Idem for [1, 1, 2, 2, 2, 2, 3, 3, 6, 6, 6, 6, 6] and [1, 1, 2, 2, 2, 2, 6, 6, 6, 6, 9, 9, 18]
+
+
+## The following code transforms modifies the .fus files given by Normaliz, putting 1 fusion datum per line, then, easier to handle (avoiding to upload all fusion data, need too much RAM)
+
+#!/bin/bash
+# Iterate over each .fus file in the current directory
+for file in *.fus
+do
+    # Check if the file is a regular file
+    if [ -f "$file" ]; then
+        # Apply the command to the file
+        cat "$file" | tr -d '[:space:]' | sed -e '1s/^.//' -e '$s/.$//' -e 's/]]],\[\[\[/]]]\n\[\[\[/g' > temp.fus && mv temp.fus "$file"
+    fi
+done
+
+# cat file.fus | tr -d '[:space:]' | sed -e '1s/^.//' -e '$s/.$//' -e 's/]]],\[\[\[/]]]\n\[\[\[/g' > temp.fus && mv temp.fus file.fus
+
+        
+## Next, application of Counter() in ModularData.sage, modified according to the need.
+            
+# Among 30084, only 10426 ones admit a non-trivial grading, 
+and among them 8720 ones have grading group and pointed group of same order, and in fact, isomorphic, and all components of same FPdim (so modular partition)
+
+# warning: in the modular case, the order of the grading group is the order of the pointed group, so no problem.
+
+
+# So, 30084 (all commutative) fusion rings from 118 cases (including duality) from 26 types (none perfect)
+# Counting per rank
+# fusion rings
+[0, 0, 0, 0, 0, 0, 8, 4, 30, 30, 284, 730, 28998]
+# cases
+[0, 0, 0, 0, 0, 0, 4, 2, 6, 5, 20, 27, 54]
+# types
+[0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 4, 6, 10]
+
+ 
+# About the 8720 ones with modular grading:
+[0,0,0,0,0,0,0,4,0,30,12,412,8262]	#8720
+[0,0,0,0,0,0,0,2,0,5,5,14,19]		#45
+[0,0,0,0,0,0,0,1,0,2,2,4,5]		#14
+
+
+# Among them, 3682 ones are also Cyclo:
+[0, 0, 0, 0, 0, 0, 0, 4, 0, 30, 12, 384, 3252]	#3682
+[0, 0, 0, 0, 0, 0, 0, 2, 0, 5, 5, 14, 19]	#45
+[0, 0, 0, 0, 0, 0, 0, 1, 0, 2, 2, 4, 5]		#14
+
+# Among them, (only) 82 ones pass the ModularCriterion:
+[0, 0, 0, 0, 0, 0, 0, 4, 0, 10, 6, 36, 26]	#82
+[0, 0, 0, 0, 0, 0, 0, 2, 0, 5, 5, 12, 9]	#33
+[0, 0, 0, 0, 0, 0, 0, 1, 0, 2, 2, 3, 2]		#10
+
+# Among them, 42 ones are SelfTransposable:
+[0, 0, 0, 0, 0, 0, 0, 4, 0, 6, 6, 16, 10]	#42
+[0, 0, 0, 0, 0, 0, 0, 2, 0, 3, 5, 8, 5]		#23
+[0, 0, 0, 0, 0, 0, 0, 1, 0, 2, 2, 3, 2]		#10
+
+
+# List of types ordered by rank:
+ [[],
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  [[1, 1, 2, 2, 2, 2, 3, 3]],
+  [],
+  [[1, 1, 2, 3, 3, 4, 4, 4, 6, 6], [1, 1, 1, 2, 2, 2, 2, 2, 2, 3]],
+  [[1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2], [1, 1, 1, 3, 4, 4, 4, 4, 4, 4, 6]],
+  [[1, 1, 2, 2, 2, 2, 6, 6, 6, 6, 9, 9],
+   [1, 1, 2, 3, 3, 6, 6, 8, 8, 8, 12, 12],
+   [1, 1, 2, 6, 6, 6, 6, 10, 10, 10, 15, 15]],
+  [[1, 1, 2, 3, 3, 24, 30, 30, 40, 40, 40, 60, 60],
+   [1, 1, 1, 3, 12, 12, 20, 20, 20, 20, 20, 20, 30]]]]
+   
+
+# Now it is time to apply the Magic Criterion:
+
+# Number of remaining fusion rings per rank:
+# [0, 0, 0, 0, 0, 0, 0, 4, 0, 2, 4, 6, 0]	# total=13
+
+# Suprisingly, the application of MagicCriterion already exclude the non-pointed MD at rank 13
+
+# Number of remaining types per rank:
+# [0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 2, 0]	# total=5
+# list per rank:   
+[[],
+ [],
+ [],
+ [],
+ [],
+ [],
+ [],
+ [[1, 1, 2, 2, 2, 2, 3, 3]],
+ [],
+ [[1, 1, 1, 2, 2, 2, 2, 2, 2, 3]],
+ [[1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2]],
+ [[1, 1, 2, 2, 2, 2, 6, 6, 6, 6, 9, 9],
+  [1, 1, 2, 6, 6, 6, 6, 10, 10, 10, 15, 15]],
+ []]
+
+# Finally, let us apply STmatrix(M,1,0)		# very quick for all, except the two fusion rings of type [1, 1, 2, 2, 2, 2, 6, 6, 6, 6, 9, 9], requiring 3 hours, 
+						# they can be excluded more easily by observing that [1,1,2,2,2,2] must be the type of a subcategory (2^2<6), which must be Lagrangian
+						# so Rep(G) with G=D_9 (id 18,1) or C3⋊S3 (id 18,4), then by EGNO's Proposition 9.13.5, the MFC must be Z(Vec(G,w)), 
+						# excluded by Gruen-Morrison: none of rank 12 for Modular_Data/18/1 or Modular_Data/18/4
+# Number of MD per rank:
+[0, 0, 0, 0, 0, 0, 0, 8, 0, 3, 8, 0, 0]
+
+# Remaining types:
+[1, 1, 2, 2, 2, 2, 3, 3]		# 8 MD
+[1, 1, 1, 2, 2, 2, 2, 2, 2, 3]		# 3 MD
+[1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2]	# 8 MD
