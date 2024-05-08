@@ -503,21 +503,21 @@ def ListOfModularizationTypes(L4):							# explain this function in more details
 		ll=l[1][0]
 		t=MultGrp(ll)
 		p=t[0][1]								# p is prime here by previous function
-		n=sum([i^2 for i in ll])/p						# n%p==0 as coming from squareequipartition
+		n=sum([i^2 for i in ll])//p						# n%p==0 as coming from ModularPartition # warning /p makes mistake, need //p (otherwise integer like 10.0)
 		LL=[[[1]]]
 		c=0
 		for [d,m] in t[1:]:
 			LLL=[];  #print([d,m])
 			if d%p!=0 and n%(d^2)==0:					# second assumption is for the modularization to be half-Frobenius
-				#print(m,p,m/p)
-				LLL.append([d for i in range(int(m/p))])		# because L4 comes from Criterion2, d%p==0 or m%p==0
+				#print(m,p,m//p)
+				LLL.append([d for i in range(m//p)])		# because L4 comes from Criterion2, d%p==0 or m%p==0
 			else:	
 				k=m//p
-				LLL.append([d/p for i in range(p*m)])
+				LLL.append([d//p for i in range(p*m)])
 				for s in range(1,k+1):
 					if n%(d^2)==0:
 						LLL1=[d for i in range(s)]
-						LLL2=[d/p for i in range(p*(m-s*p))]
+						LLL2=[d//p for i in range(p*(m-s*p))]
 						LLL.append(LLL1+LLL2)
 			if len(LLL)==0:
 				c=1
@@ -528,19 +528,21 @@ def ListOfModularizationTypes(L4):							# explain this function in more details
 			LL_tuples = [[tuple(inner_list) for inner_list in outer_list] for outer_list in LL]; #print('LL=',LL)
 			all_combinations = cartesian_product(LL_tuples); # SageMath can make float here, corrected below.
 			merged_lists = [sum(list(map(list, combination)),[]) for combination in all_combinations]
-			merged_lists_int = [[int(num) for num in sublist] for sublist in merged_lists]; print(merged_lists_int)
+			merged_lists_int = [[int(num) for num in sublist] for sublist in merged_lists]; #print('merged_lists_int',merged_lists_int)
 			LLs=[]
 			for ls in merged_lists_int:
-				ls.sort()
+				ls.sort(); #print('ls',ls)
 				if not ls in LLs:
-					#print(ls)
+					#print(factor(n))
 					if not(len(ls)>1 and ls[1]>1 and len(list(factor(n)))<=2):		# not(non-trivial and perfect and FPdim = p^a q^b) #add lemma that  it is true
+						#print('yes')
 						LLs.append(ls)
+			#print('LLs',LLs)			
 			if len(LLs)>0:
 				print('new iteration',LLs)
 				LLLs=GradingCriteria(LLs)							# iteration process, warning!!! could be long!! Explain
 				if len(LLLs)>0:
-					L5.append([l,LLLs]); print([l,LLs])						# what about using non-graded criteria also?
+					L5.append([l,LLLs]); #print([l,LLs])						# what about using non-graded criteria also?
 	return L5	
 	
 '''
