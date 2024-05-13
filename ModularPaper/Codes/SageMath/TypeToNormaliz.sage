@@ -6,6 +6,12 @@ def TypeToNormaliz(l):
 	Du=duality(T)
 	for d in Du:
 		normaliz(l,d)
+
+def TypeToNormalizSingle(l):
+	T=ListToType(l)
+	Du=duality(T)
+	for d in Du:
+		NormalizSingle(l,d)
 		
 def TypeToNormalizAlone(l):
 	T=ListToType(l)
@@ -65,6 +71,11 @@ def TypesToNormaliz(LL):
 	for l in LL:
 		print(l)
 		TypeToNormaliz(l)
+
+def TypesToNormalizSingle(LL):
+	for l in LL:
+		print(l)
+		TypeToNormalizSingle(l)
 
 def TypesToNormalizAlone(LL):
 	for l in LL:
