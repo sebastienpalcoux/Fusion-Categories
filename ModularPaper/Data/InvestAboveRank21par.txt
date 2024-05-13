@@ -16,24 +16,28 @@ sage: len(L)
 sage: %attach /home/sebastien/Nutstore Files/SAGE/TypeToNormaliz.sage
 sage: %attach /home/sebastien/Nutstore Files/SAGE/TypeCriteria.sage
 
-sage: %time L1=TypesCriteria(L)
-CPU times: user 559 ms, sys: 1.92 s, total: 2.48 s
-Wall time: 5.86 s
+sage: %time L1=TypesCriteria(L,0,1)
+CPU times: user 2.1 s, sys: 1.2 s, total: 3.3 s
+Wall time: 23.3 s
 sage: len(L1)
-688
+709
 sage: %time L2=GradingCriteria(L1)
-CPU times: user 1.54 s, sys: 2.2 s, total: 3.74 s
-Wall time: 7.89 s
+CPU times: user 1.8 s, sys: 2.04 s, total: 3.84 s
+Wall time: 8.27 s
 sage: len(L2)
-484
+512
 sage: TypesToPreNormalizAlone(L2)
 for i in *; do timeout 1s normaliz -x=4 -c "$i"; done
-# There remain 32 uncompleted types + 0 with a solution
+# There remain 35 unsolved types + 0 with a solution
 for i in *; do timeout 10s normaliz -x=4 -c "$i"; done
-# There remain 30 uncompleted types + 0 with a solution
+# There remain 32 unsolved types + 0 with a solution
 for i in *; do timeout 1000s normaliz -x=4 -c "$i"; done
-# There remain 22 uncompleted types + 0 with a solution
+# There remain 23 unsolved types + 0 with a solution
 
+Theoretical exclusion: [[1,2,2,3] must be the type of a perfect fusion subring, contradiction (there should be at least 4 different FPdims)
+[1,2,2,3,216,552,648,1863,1863,2484,3726,3726,3726,3726,3726,3726,3726,3726,3726,3726,3726,7452],
+
+There remain 22 types to consider (all perfect):
 [[1,23,23,24,40,115,240,368,690,1104,1380,1380,1380,1380,1380,1380,1380,1380,1380,1380,1380,2760],
 [1,36,36,36,36,36,36,36,36,36,36,36,92,92,108,207,621,621,828,1242,1242,1242],
 [1,36,36,92,92,108,108,207,621,621,828,1242,1242,1242,1242,1242,1242,1242,1242,1242,1242,1242],
@@ -57,7 +61,8 @@ for i in *; do timeout 1000s normaliz -x=4 -c "$i"; done
 [1,120,180,207,460,600,2300,5175,5175,6900,10350,10350,10350,10350,10350,10350,10350,10350,10350,10350,10350,20700],
 [1,207,207,276,2250,2875,3600,41400,46000,82800,103500,103500,103500,103500,103500,103500,103500,103500,103500,103500,103500,207000]]
 
-All perfect
+##### double-checked
+
 
 ## Rank 23 ##
 
@@ -90,6 +95,8 @@ for i in *; do timeout 1s normaliz -x=4 -c "$i"; done
 # There remains only:
 [1,540,725,1450,2610,3132,8100,26100,58725,58725,58725,58725,58725,58725,58725,58725,58725,58725,58725,58725,58725,58725,78300]
 
+## double-checked
+
 
 ## Rank 24 ##
 
@@ -106,23 +113,23 @@ sage: len(L)
 1443
 sage: %attach /home/sebastien/Nutstore Files/SAGE/TypeCriteria.sage
 sage: %attach /home/sebastien/Nutstore Files/SAGE/TypeToNormaliz.sage
-sage: %time L1=TypesCriteria(L)
-CPU times: user 545 ms, sys: 1.67 s, total: 2.21 s
-Wall time: 4.74 s
+sage: %time L1=TypesCriteria(L,0.1)
+CPU times: user 864 ms, sys: 831 ms, total: 1.7 s
+Wall time: 18.2 s
 sage: len(L1)
-693
+688
 sage: %time L2=GradingCriteria(L1)
-CPU times: user 1.02 s, sys: 1.71 s, total: 2.72 s
-Wall time: 5.68 s
+CPU times: user 1.08 s, sys: 1.32 s, total: 2.4 s
+Wall time: 5.14 s
 sage: len(L2)
-550
+549
 sage: TypesToPreNormalizAlone(L2)
 for i in *; do timeout 1s normaliz -x=4 -c "$i"; done
-# There remain 29 uncompleted types + 0 with a solution
+# There remain 27 unsolved types + 0 with a solution
 for i in *; do timeout 10s normaliz -x=4 -c "$i"; done
-# There remain 22 uncompleted types + 0 with a solution
+# There remain 22 unsolved types + 0 with a solution
 for i in *; do timeout 1000s normaliz -x=4 -c "$i"; done
-# There remain 16 uncompleted types + 0 with a solution
+# There remain 16 unsolved types + 0 with a solution
 
 [[1,40,45,45,60,87,174,348,1160,2610,2610,2610,2610,2610,2610,2610,2610,2610,2610,2610,2610,2610,2610,3480],
 [1,40,45,45,60,145,348,522,1044,2610,2610,2610,2610,2610,2610,2610,2610,2610,2610,2610,2610,2610,2610,3480],
@@ -140,3 +147,5 @@ for i in *; do timeout 1000s normaliz -x=4 -c "$i"; done
 [1,435,540,580,1450,2610,3132,8100,26100,58725,58725,58725,58725,58725,58725,58725,58725,58725,58725,58725,58725,58725,58725,78300],
 [1,540,725,1450,2610,3132,8100,26100,58725,58725,58725,58725,58725,58725,58725,58725,58725,58725,58725,58725,58725,58725,78300,234900],
 [1,540,725,1450,2610,3132,8100,26100,78300,176175,176175,176175,176175,176175,176175,176175,176175,176175,176175,176175,176175,176175,176175,234900]]
+
+### double-checked
