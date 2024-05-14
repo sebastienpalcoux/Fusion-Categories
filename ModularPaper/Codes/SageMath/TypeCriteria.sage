@@ -37,7 +37,38 @@ def SmallPerfect(l):
 	if len(l)==1 or l[1]==1:	# dedicated to non-trivial perfect only
 		return True
 	else:
-		return len(MultGrp(l))>3 and len(list(factor(sum([i^2 for i in l]))))>2				
+		return len(MultGrp(l))>3 and len(list(factor(sum([i^2 for i in l]))))>2	
+		
+def BadPerfect(L):
+	BP=[]
+	for l in L:
+		if len(l)>1 and l[1]>1 and len(list(factor(sum([i^2 for i in l]))))<=2:
+			BP.append(l)
+	return BP		
+		
+def SmallPerfectRing(l):
+	if len(l)==1 or l[1]==1:	# fusion ring version as the assumption len(list(factor(sum([i^2 for i in l]))))>2 is proved only at the categorical level
+		return True
+	else:
+		return len(MultGrp(l))>3
+
+def TypeCriteriaRing(l,ti=None):
+	if l==[1]:
+		return True
+	if ti is None:
+		ti = 0.01	
+	t=ListToType(l)
+	return SmallPerfectRing(l) and GcdCriterion(l) and TypeTest(t) and LocalCriterionAll(t,ti)
+	
+def TypesCriteriaRing(L,ti=None):
+	if ti is None:
+		ti = 0.01
+	LL=[]
+	for l in L:
+		print(l)
+		if TypeCriteriaRing(l,ti):
+			LL.append(l)
+	return LL						
 
 def GcdCriterion(l):	# made for non-trivial perfect, otherwise return True
 	if len(l)==1 or l[1]==1:
