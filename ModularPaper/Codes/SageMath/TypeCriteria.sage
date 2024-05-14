@@ -574,12 +574,7 @@ def ListOfModularizationTypes(L4):							# explain this function in more details
 				LLLs=GradingCriteria(LLs)							# iteration process, warning!!! could be long!! Explain
 				if len(LLLs)>0:
 					L5.append([l,LLLs]); #print([l,LLs])						# what about using non-graded criteria also?
-	return L5	
-	
-'''
-Bug with:
-sage: L4=[[[1, 1, 1, 3, 6, 6, 6, 6, 6, 8, 8, 8, 8, 8, 8], [[1, 1, 1, 3, 6, 6, 6, 6, 6], [8, 8, 8], [8, 8, 8]]]]
-'''	
+	return L5		
 	
 			
 '''						
