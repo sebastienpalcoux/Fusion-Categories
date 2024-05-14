@@ -1,0 +1,45 @@
+sage: %attach ListPossibleTypes.sage
+%attach /home/sebastien/Nutstore Files/SAGE/TypeCriteria.sage
+%attach /home/sebastien/Nutstore Files/SAGE/TypeToNormaliz.sage
+sage: len(LPT)
+13
+sage: BL=[]
+sage: for L in LPT:
+....:     LL=BadPerfect(L)
+....:     BL.extend(LL)
+....: 
+sage: len(BL)
+205
+sage: BL.sort()
+
+sage: %time L1=TypesCriteriaRing(BL)
+sage: len(L1)
+66
+sage: TypesToPreNormalizAlone(L1)
+for i in *; do timeout 1s normaliz -x=4 -c "$i"; done
+# There remain 0 unsolved types + 19 with solution
+
+L2=[[1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4, 4, 6],
+ [1, 2, 2, 2, 2, 3, 3, 3, 6, 8, 12, 12, 12],
+ [1, 2, 2, 2, 3, 3, 3, 4, 4, 6, 6],
+ [1, 2, 2, 2, 3, 3, 3, 4, 4, 6, 6, 12],
+ [1, 2, 2, 2, 3, 3, 3, 4, 4, 6, 6, 12, 12],
+ [1, 2, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4],
+ [1, 2, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 12],
+ [1, 2, 3, 3, 3, 4, 4, 4, 8, 12, 12, 12],
+ [1, 2, 3, 3, 3, 4, 4, 4, 8, 12, 12, 12, 24],
+ [1, 2, 3, 3, 3, 4, 4, 16, 16, 24, 24, 24],
+ [1, 2, 3, 3, 3, 4, 4, 16, 16, 24, 24, 24, 48],
+ [1, 3, 3, 3, 4, 4, 4, 4, 4, 6],
+ [1, 3, 3, 3, 4, 4, 4, 4, 4, 6, 12],
+ [1, 3, 3, 3, 4, 4, 4, 4, 4, 6, 12, 12],
+ [1, 3, 3, 3, 4, 4, 4, 4, 4, 6, 12, 12, 12],
+ [1, 3, 3, 3, 4, 4, 6, 8, 8, 8, 12, 12],
+ [1, 3, 3, 3, 4, 4, 6, 8, 8, 8, 12, 12, 24],
+ [1, 3, 3, 4, 4, 4, 4, 4, 9, 12, 18, 18, 18],
+ [1, 4, 4, 5, 5, 5, 8, 8, 8, 10, 20, 20, 20]]
+
+sage: TypesToNormalizSingle(L2)
+# That makes 254 files.
+for i in *; do timeout 10s normaliz -x=4 -c "$i"; done
+# 0 unsolved cases + 0 ones with a solution
