@@ -164,23 +164,20 @@ do
     fi
 done
         
-## Next, application of Counter() in ModularData.sage, modified according to the need (with the functions GradingDetector or ModularGrading)
+## Next, application of Counter(13) in ModularData.sage, modified according to the need (with the functions GradingDetector or ModularGrading)
             
 # Among 30084, only 10426 ones admit a non-trivial grading, and among them 8720 ones have grading group and pointed group of same order, and in fact, isomorphic, and all components of same FPdim (so modular partition)
 
 # So, 30084 (all commutative) fusion rings from 118 cases (including duality) from 26 types (none perfect)
 # Counting per rank
-# fusion rings
-[0, 0, 0, 0, 0, 0, 8, 4, 30, 30, 284, 730, 28998]
-# cases
-[0, 0, 0, 0, 0, 0, 4, 2, 6, 5, 20, 27, 54]
-# types
-[0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 4, 6, 10]
+[0, 0, 0, 0, 0, 0, 8, 4, 30, 30, 284, 730, 28998]	# fusion rings
+[0, 0, 0, 0, 0, 0, 4, 2, 6, 5, 20, 27, 54]		# cases
+[0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 4, 6, 10]		# types
 
 # About the 8720 ones with modular grading:
-[0,0,0,0,0,0,0,4,0,30,12,412,8262]	#8720
-[0,0,0,0,0,0,0,2,0,5,5,14,19]		#45
-[0,0,0,0,0,0,0,1,0,2,2,4,5]		#14
+[0,0,0,0,0,0,0,4,0,30,12,412,8262]		#8720
+[0,0,0,0,0,0,0,2,0,5,5,14,19]			#45
+[0,0,0,0,0,0,0,1,0,2,2,4,5]			#14
 
 # Among them, 3682 ones are also Cyclo:
 [0, 0, 0, 0, 0, 0, 0, 4, 0, 30, 12, 384, 3252]	#3682
