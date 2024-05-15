@@ -268,11 +268,11 @@ def ModularGrading(M,dim):
 			PG=PointedGroup(M,pp)
 			return PointedGrading(M,GG,PG)	
 		
-def Counter():
+def Counter(r):		#upto rank r
 	import os
 	folder_path = os.getcwd()  # Get the current working directory
 	# Loop over all files in the folder
-	S1=[[] for i in range(13)]; S2=[[] for i in range(13)]; S3=[[] for i in range(13)]; FD=[[] for i in range(13)];
+	S1=[[] for i in range(r)]; S2=[[] for i in range(r)]; S3=[[] for i in range(r)]; FD=[[] for i in range(r)];
 	for filename in os.listdir(folder_path):
 		if filename.endswith(".fus"):  # Check if the file has a .fus extension
 			file_path = os.path.join(folder_path, filename)  # Get the full path of the file
