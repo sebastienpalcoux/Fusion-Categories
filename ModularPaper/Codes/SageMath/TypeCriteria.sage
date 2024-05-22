@@ -615,10 +615,10 @@ def Rest(LL1,LL2,LL3,L5):
 	return RL
 	
 def GradingCriteria(L0):
-	LP=[]; LNP=[]			# remove the one does not passing Theorem4Check and TypeCriteria, and then move the perfect one at the end
+	LP=[]; LNP=[]			# remove the one does not passing Theorem8_7Check and TypeCriteria, and then move the perfect one at the end
 	for l in L0:
 		print(l)
-		if len(Theorem4Check(l))>0 and TypeCriteria(l):		# by default 0.01s for LocalCriterion to be quick as most of those covered by 0.1 or 1s are also by 0.01s
+		if len(Theorem8_7Check(l))>0 and TypeCriteria(l):		# by default 0.01s for LocalCriterion to be quick as most of those covered by 0.1 or 1s are also by 0.01s
 			if l[1]>1:					# later add Burciu-Palcoux Burnside-ilke result (i.e. perfect non-trival modular integral implies no powerless prime factor)
 				LP.append(l)
 			else:
@@ -643,10 +643,6 @@ def GradingCriteriaTime(l,t):
 	if ti==[]:
 		return False
 	return True
-
-
-
-# Code for theorems 3, 4 in MO https://mathoverflow.net/q/466864/34538
 
 
 # Function to find all partitions of the list P
@@ -717,7 +713,7 @@ def MultGrp(l):
 	ll.sort()
 	return [[i,l.count(i)] for i in ll]
     
-def Theorem3Check(l):
+def Theorem8_5Check(l):
     t=MultGrp(l)
     s=sum([i^2 for i in l])
     lp=list(factor(s))
@@ -726,7 +722,7 @@ def Theorem3Check(l):
     tm=max([tt[1] for tt in t])
     return p<=2*tm+1
     
-def Theorem4Check(l):
+def Theorem8_7Check(l):
 	if l[-1]==1:
 		return ['ok, pointed']
 	n=sum([i^2 for i in l])
