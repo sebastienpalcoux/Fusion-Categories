@@ -30,7 +30,7 @@ L1=[]
 for l in L:
 	s=list(factor(sum([i**2 for i in l])))
 	if not l in L1:
-		if l[-1]>1 and s[-1][0]<=len(l)/2:	# non-pointed and Strong Theorem
+		if l[-1]>1 and s[-1][0]<=len(l)/2:	# non-pointed and Theorem 1.1(2)
 			L1.append(l)
 sage: len(L1)
 15667		# removed 10 types

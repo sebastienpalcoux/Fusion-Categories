@@ -10,7 +10,7 @@ sage: L0=[]
 ....: for ll in LPT:
 ....:     for l in ll:
 ....:         s=list(factor(sum([i**2 for i in l])))
-....:         if l[-1]>1 and s[-1][0]<=len(l)/2:	# non-pointed and Strong Theorem...
+....:         if l[-1]>1 and s[-1][0]<=len(l)/2:	# non-pointed and Theorem 1.1(2)
 ....:             L0.append(l)
 sage: L0.sort()
 sage: len(L0)

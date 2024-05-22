@@ -100,7 +100,7 @@ sage: len(LL)
 91
 sage: L2=[]
 sage: for l in LL:
-....:     if len(Theorem4Check(l))>0:
+....:     if len(Theorem8_7Check(l))>0:
 ....:         L2.append(l)
 ....: 
 sage: len(L2)
