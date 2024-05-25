@@ -261,6 +261,8 @@ def isomorphicclasss(M, T, d):
 #############	IMPORTANT	  ####################
 #############	MODULAR SECTION   ###################
 
+## the following two functions are due to Max Alekseyev
+
 # generate submultisets of list M (sorted in nonincreasing order) with a given sum s
 def gen_mparts(M,s,i=0):
     if s==0:
@@ -284,10 +286,10 @@ def ModularPartitions(T):
     if d%p!=0:
         return []
 
-    U = list(set(T))    # unique elements in T
+    U = sorted(set(T))    # unique elements in T
 
     S = [ [p.count(u^2) for u in U] for p in gen_mparts([i^2 for i in reversed(T)],d//p) ]
-    return  sorted( sorted(sorted(sum(([u]*q for u,q in zip(U,Qi)),[])) for Qi in Q) for Q in VectorPartitions( [T.count(u) for u in U], parts=S ) )   
+    return  sorted( sorted(sum(([u]*q for u,q in zip(U,Qi)),[]) for Qi in Q) for Q in VectorPartitions( [T.count(u) for u in U], parts=S ) )   
 
 #ModularPartitions([1, 1, 1, 1, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5])
     
