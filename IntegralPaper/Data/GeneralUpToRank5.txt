@@ -39,6 +39,20 @@ sage: len(TTT); len(L1)
 219
 147
 
+### Bad Perfect ### Merge with normal case using TypesCriteriaRing above # Is there a bad perfect Drinfeld fusion ring?
+sage: BP=BadPerfect(TTT)
+sage: len(BP)
+11
+sage: BP1=TypesCriteriaRing(BP,1)
+sage: len(BP1)
+9
+sage: %attach /home/sebastien/Nutstore Files/SAGE/TypeToNormaliz.sage
+sage: TypesToNormalizAlone(BP1)
+# created 14 input files
+for i in *; do normaliz -x=4 -c "$i"; done
+# Result: no bad perfect solution. OK
+####################
+
 sage: %attach /home/sebastien/Nutstore Files/SAGE/TypeToNormaliz.sage
 sage: TypesToNormalizAlone(L1)
 # It creates 205 input files
