@@ -1,7 +1,3 @@
-# write the details up to here (constraints Egyptian fractions)
-# only need to consider FPdim(R) in {6,8,10,12}
-# classification of all the integral fusion rings of rank 6 and FPdim in {6,8,10,12}
-
 sage: %attach EgyFracL4Div.sage
 sage: len(L)
 12
