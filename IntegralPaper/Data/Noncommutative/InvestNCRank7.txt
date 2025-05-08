@@ -1,0 +1,88 @@
+sage: %attach EgyFracL5Div.sage
+sage: len(L)
+97
+sage: NC7=[]
+....: for l in L:
+....:     a=max(l)
+....:     l1=len(set(l)); l2=len(l)
+....:     if l1<l2 and a>=7 and not(l1+1==l2 and l.count(a)==2):	# the part not() is to exclude 1/a + 1/a + all differents
+....:         NC7.append(l)
+....: 
+sage: len(NC7)
+43
+sage: Di=[]
+sage: for l in NC7:
+....:     a=max(l)
+....:     if not a in Di:
+....:         Di.append(a)
+....: Di.sort()
+sage: print(Di)
+[8, 9, 10, 12, 14, 15, 18, 20, 21, 24, 30, 36, 42, 45, 48, 60, 70, 78, 84, 110, 120, 156]
+sage: len(Di)
+22
+
+# classification of all the integral fusion rings of rank 7 and FPdim in Di
+
+sage: %attach /home/sebastien/Nutstore Files/SAGE/TypesFinder.spyx
+sage: L=[8, 9, 10, 12, 14, 15, 18, 20, 21, 24, 30, 36, 42, 45, 48, 60, 70, 78, 84, 110, 120, 156]
+sage: T=[]
+sage: for n in L:
+....:     T.append([n, TypesFinder(n, 7)])
+sage: sum([len(t[1]) for t in T])
+83
+# No need type filter and prenormaliz here (83 is small enough)
+# direct classification of all possible fusion rings for these two types:
+sage: TT=[]
+sage: for t in T:
+....:     TT.extend(t[1])
+....: 
+sage: len(TT)
+83
+sage: %attach /home/sebastien/Nutstore Files/SAGE/TypeToNormaliz.sage
+sage: TypesToNormalizAlone(TT)
+# It mades 255 files
+for i in *; do normaliz -x=4 -c "$i"; done
+## All done, only 25 files admit solutions
+
+ls *.fus > FUS.sage
+# Transform FUS.sage containing the list L of types:
+].fus\n[ to ]],\n[[
+][ to ],[
+].fus to ]]]
+first [ to L=[[[
+test the code, and add it to FullMove.sh (idem for all hand work)		# not working well, update it! (idem rank6)
+sed -i -e 's/]\.fus\\n\[/]],\n[[/g' \
+       -e 's/\]\[/],[/g' \
+       -e 's/]\.fus/]]]/g' \
+       -e '0,/\[/{s/\[/L=\[\[\[/}' FUS.sage
+sage: %attach FUS.sage
+sage: len(L)
+25
+sage: T=[]
+sage: for l in L:
+....:     t=l[0]
+....:     if not t in T:
+....:         T.append(t)
+....: 
+sage: len(T)
+11			# number of different types
+
+#To count the number of fusion rings:
+awk 'FNR==1{sum+=$1} END{print sum}' *.out
+44
+# Transform the .fus file as one line per fusion ring:
+for file in *.fus
+do
+    # Check if the file is a regular file
+    if [ -f "$file" ]; then
+        # Apply the command to the file
+        cat "$file" | tr -d '[:space:]' | sed -e '1s/^.//' -e '$s/.$//' -e 's/]]],\[\[\[/]]]\n\[\[\[/g' > temp.fus && mv temp.fus "$file"
+    fi
+done
+sage: %attach /home/sebastien/Nutstore Files/SAGE/AllCriteria.sage
+sage: L=FolderChecking()	# improve the code to better distinguish C from NC
+sage: len(L)
+NonCommutative[3_2, 6, 7, 42]	# Drinfeld NC, 3_2 means that it is a formal codegree corresponding to a 2-dim. irrep.
+NonCommutative[3_2, 4, 24, 24]
+NonCommutative[3_2, 4, 15, 60]
+20				# number of Drinfeld rings in total
