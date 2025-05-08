@@ -80,9 +80,9 @@ do
     fi
 done
 sage: %attach /home/sebastien/Nutstore Files/SAGE/AllCriteria.sage
-sage: L=FolderChecking()	# improve the code to better distinguish C from NC
+sage: L=FolderChecking()
 sage: len(L)
-NonCommutative[3_2, 6, 7, 42]	# Drinfeld NC, 3_2 means that it is a formal codegree corresponding to a 2-dim. irrep.
-NonCommutative[3_2, 4, 24, 24]
-NonCommutative[3_2, 4, 15, 60]
+NonCommutative[3, 6, 7, 42]	# Exactly three Drinfeld NonCommutative
+NonCommutative[3, 4, 24, 24]
+NonCommutative[3, 4, 15, 60]
 20				# number of Drinfeld rings in total
