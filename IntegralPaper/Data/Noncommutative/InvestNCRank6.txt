@@ -1,0 +1,89 @@
+# write the details up to here (constraints Egyptian fractions)
+# only need to consider FPdim(R) in {6,8,10,12}
+# classification of all the integral fusion rings of rank 6 and FPdim in {6,8,10,12}
+
+sage: %attach EgyFracL4Div.sage
+sage: len(L)
+12
+sage: NC6=[]
+....: for l in L:
+....:     a=max(l)
+....:     l1=len(set(l)); l2=len(l)
+....:     if l1<l2 and a>=6 and not(l1+1==l2 and l.count(a)==2):	# the part not() is to exclude 1/a + 1/a + all differents
+....:         NC6.append(l)
+....: 
+sage: len(NC6)
+4
+sage: Di=[]
+sage: for l in NC6:
+....:     a=max(l)
+....:     if not a in Di:
+....:         Di.append(a)
+....: Di.sort()
+sage: print(Di)
+[6, 10, 12]
+sage: len(Di)
+3
+
+# classification of all the integral fusion rings of rank 6 and FPdim in Di
+
+sage: %attach /home/sebastien/Nutstore Files/SAGE/TypesFinder.spyx
+sage: L=[6,10,12]
+sage: T=[]
+sage: for n in L:
+....:     T.append([n, TypesFinder(n, 6)])
+....: 
+sage: T
+[[6, [[1, 1, 1, 1, 1, 1]]], [10, []], [12, [[1, 1, 1, 1, 2, 2]]]]
+
+# only two possible types: [1, 1, 1, 1, 1, 1] and [1, 1, 1, 1, 2, 2]
+# no need type filter and prenormaliz here
+# direct classification of all possible fusion rings for these two types:
+sage: L=[[1, 1, 1, 1, 1, 1],[1, 1, 1, 1, 2, 2]]
+sage: %attach /home/sebastien/Nutstore Files/SAGE/TypeToNormaliz.sage
+sage: TypesToNormalizAlone(L)
+# It mades 7 files
+for i in *; do normaliz -x=4 -c "$i"; done
+## All done
+
+ls *.fus > FUS.sage
+# Transform FUS.sage containing the list L of types:
+].fus\n[ to ]],\n[[
+][ to ],[
+].fus to ]]]
+first [ to L=[[[
+test the code, and add it to FullMove.sh (idem for all hand work)
+sed -i -e 's/]\.fus\\n\[/]],\n[[/g' \
+       -e 's/\]\[/],[/g' \
+       -e 's/]\.fus/]]]/g' \
+       -e '0,/\[/{s/\[/L=\[\[\[/}' FUS.sage
+sage: %attach FUS.sage
+sage: len(L)
+6
+sage: T=[]
+sage: for l in L:
+....:     t=l[0]
+....:     if not t in T:
+....:         T.append(t)
+....: 
+sage: len(T)
+2			# number of different types
+
+#To count the number of fusion rings:
+awk 'FNR==1{sum+=$1} END{print sum}' *.out
+6
+
+# Transform the .fus file as one line per fusion ring:
+for file in *.fus
+do
+    # Check if the file is a regular file
+    if [ -f "$file" ]; then
+        # Apply the command to the file
+        cat "$file" | tr -d '[:space:]' | sed -e '1s/^.//' -e '$s/.$//' -e 's/]]],\[\[\[/]]]\n\[\[\[/g' > temp.fus && mv temp.fus "$file"
+    fi
+done
+sage: %attach /home/sebastien/Nutstore Files/SAGE/AllCriteria.sage
+sage: L=FolderChecking()
+sage: len(L)
+NonCommutative[3, 6, 6]		# only one Drinfeld noncommutative, i.e. Vec(S3)
+6				# number of Drinfeld rings in total (without NC assumption)
