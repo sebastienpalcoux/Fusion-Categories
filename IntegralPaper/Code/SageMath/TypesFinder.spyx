@@ -1,0 +1,64 @@
+# Import necessary modules from SageMath
+from sage.all import Integer
+
+def TypesFinder(int n, int r):
+    cdef list L = []
+    cdef list results = []
+    
+    if r==1:
+        if n==1:
+            return [[1]]
+        else:
+            return []   
+
+    # Call the sum_of_squares function to populate results
+    sum_of_squares(n-1, r-1, 1, results)
+
+    # Convert results to list of lists and sort
+    for res in results:
+        L.append([1] + res)
+    L.sort()
+    return L
+
+cdef void sum_of_squares(int n, int number_of_squares, int b, list results):
+    cdef int i, k
+    cdef list current_list
+
+    if n != 0 and n >= b * b:
+        if number_of_squares <= 1:
+            if is_square(n):
+                results.append([isqrt(n)])
+            return
+        
+        for i in range(isqrt(n), b - 1, -1):
+            k = n - i * i
+            sub_results = []
+            sum_of_squares(k, number_of_squares - 1, i, sub_results)
+            for res in sub_results:
+                results.append([i] + res)
+
+cdef int isqrt(int n):
+    # Use the isqrt method of Integer to ensure correct integer square root
+    return Integer(n).isqrt()
+
+cdef bint is_square(int n):
+    # Check if the number is a perfect square
+    cdef int root = Integer(n).isqrt()
+    return root * root == n
+    
+    
+def TypesFinderMNSD(int m, int s):
+    cdef int n,r,i	
+    cdef list L,LL,l
+    n=(m+1)/2
+    r=(s+1)/2  
+    L=TypesFinder(n,r)
+    LL=[]
+    for l in L:
+        ll=[1]
+        for i in l[1:]:
+            ll.extend([i,i])
+        LL.append(ll)
+    return LL    
+    
+
