@@ -1,6 +1,6 @@
 # Read("GroupTheoretical.gap");
 
-# This section presents the GAP code used in this paper. We begin with the code that determines the type of the group-theoretical fusion category $\mathcal{C}(G, 1, H, 1)$; see \S\ref{sec:grpth}.
+# This section presents the GAP code used in this paper. We begin with the code that determines the type of the group-theoretical fusion category $\mathcal{C}(G, 1, H, 1)$.
 
 GroupTheoreticalType := function(G, H)	  # trivial 3-cocycle and 2-cochain
   local doubleCosets, dims, g, Hg, intersection, index, reps, chi, R;
@@ -73,7 +73,7 @@ end;;
 # [ [ 1, 1, 1, 3, 4, 4, 4 ], [0, 2, 1, 3, 4, 5, 6] ]
 
 
-# Finally, the following code finds all groups $G$ and subgroups $H$ such that $\mathcal{C}(G,1,H,1)$ has type \texttt{t}, and also computes the corresponding duality.
+# Finally, the following code finds all groups $G$ and subgroups $H$ such that $\mathcal{C}(G,1,H,1)$ has type t, and also computes the corresponding duality.
 
 FindGroupSubgroup := function(t)
     local n, i, j, G, subgroups, H, result, TD;
