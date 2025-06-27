@@ -19,6 +19,12 @@ def TypeToNormalizAlone(l):
 	for d in Du:
 		NormalizAlone(l,d)		# dimension and associativity equations made by Normaliz
 		
+def TypeToNormalizInduction(l):
+	T=ListToType(l)
+	Du=duality(T)
+	for d in Du:
+		NormalizInduction(l,d)		
+		
 def TypeToNormalizAloneNC(l):
 	T=ListToType(l); #print(l)
 	l1=l[1:]
@@ -111,6 +117,11 @@ def TypesToNormalizAlone(LL):
 	for l in LL:
 		print(l)
 		TypeToNormalizAlone(l)
+		
+def TypesToNormalizInduction(LL):
+	for l in LL:
+		print(l)
+		TypeToNormalizInduction(l)		
 		
 def TypesToNormalizAloneNC(LL):
 	for l in LL:
@@ -307,6 +318,17 @@ def NormalizAlone(L,d):
 	f.write('amb_space auto'+'\n'+'fusion_type'+'\n'+str(L)+'\n'+'fusion_duality'+'\n'+str(d)+'\n'+'FusionData')
 	f.close()
 	
+def NormalizInduction(L,d):
+	s='['
+	for i in L[:-1]:
+		s+=str(i)+','
+	s+=str(L[-1])+']['
+	for i in d[:-1]:
+		s+=str(i)+','
+	s+=str(d[-1])+']'
+	f=open(s+'.in','w')
+	f.write('amb_space auto'+'\n'+'fusion_type'+'\n'+str(L)+'\n'+'fusion_duality'+'\n'+str(d)+'\n'+'FusionData'+'\n'+'InductionMatrices')
+	f.close()	
 	
 def NormalizModularOneGrad(L,d):
 	s='['
