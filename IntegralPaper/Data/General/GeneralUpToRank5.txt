@@ -39,20 +39,6 @@ sage: len(TTT); len(L1)
 219
 147
 
-### Bad Perfect ### Merge with normal case using TypesCriteriaRing above # Is there a bad perfect Drinfeld fusion ring?
-sage: BP=BadPerfect(TTT)
-sage: len(BP)
-11
-sage: BP1=TypesCriteriaRing(BP,1)
-sage: len(BP1)
-9
-sage: %attach /home/sebastien/Nutstore Files/SAGE/TypeToNormaliz.sage
-sage: TypesToNormalizAlone(BP1)
-# created 14 input files
-for i in *; do normaliz -x=4 -c "$i"; done
-# Result: no bad perfect solution. OK
-####################
-
 sage: %attach /home/sebastien/Nutstore Files/SAGE/TypeToNormaliz.sage
 sage: TypesToNormalizAlone(L1)
 # It creates 205 input files
@@ -323,4 +309,27 @@ sage: print(LL)	 		# Below is the list of these 29 Drinfeld rings
 [[0,0,1,0,0],[0,0,1,0,0],[1,1,1,0,0],[0,0,0,2,0],[0,0,0,0,2]],
 [[0,0,0,1,0],[0,0,0,1,0],[0,0,0,2,0],[1,1,2,5,0],[0,0,0,0,6]],
 [[0,0,0,0,1],[0,0,0,0,1],[0,0,0,0,2],[0,0,0,0,6],[1,1,2,6,41]]]]]]
+
+
+### Bad Perfect ### 
+
+The function \texttt{TypesCriteria} incorporates a criterion currently established only at the categorical level: there exists no nontrivial perfect integral fusion category whose FPdim is of the form \( p^a q^b \). A perfect integral fusion ring with FPdim \( p^a q^b \) is called a \emph{bad perfect fusion ring}. Such rings do exist; for example, there is a simple integral fusion ring of rank~4, of type \([1, 211, 409, 566]\), with FPdim \( 532159 \) (a prime number). 
+
+None of the bad perfect fusion rings discovered so far are Drinfeld. This naturally raises the question:
+\begin{center}
+\emph{Is there a bad perfect Drinfeld fusion ring?}
+\end{center}
+
+sage: BP=BadPerfect(TTT)
+sage: len(BP)
+11
+sage: BP1=TypesCriteriaRing(BP,1)
+sage: len(BP1)
+9
+sage: %attach /home/sebastien/Nutstore Files/SAGE/TypeToNormaliz.sage
+sage: TypesToNormalizAlone(BP1)
+# created 14 input files
+for i in *; do normaliz -x=4 -c "$i"; done
+# Result: no bad perfect solution. OK
+####################
 
