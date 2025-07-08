@@ -1,4 +1,4 @@
-Comprehensive classification of integral 1-Frobenius non-perfect MNSD Drinfeld rings of rank 9 and FPdim<=10^9:  
+Comprehensive classification of integral 1-Frobenius non-perfect MNSD Drinfeld rings of rank 11 and FPdim<=10^9:  
 #items = 24
 
 Here is how to read each item: [FPdim, type, duality, formal codegrees, fusion data]
