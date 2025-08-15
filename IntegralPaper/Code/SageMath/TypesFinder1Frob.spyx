@@ -1,7 +1,7 @@
 # Import necessary modules from SageMath
 from sage.all import Integer, divisors
 
-def TypesFinder(int n, int r):
+def TypesFinder(int n, int r):	# as int, n should be less than 2147483647, otherwise use long
     cdef list L = []
     cdef list results = []
     cdef list divs = divisors(n)  # Get the divisors of n
@@ -14,7 +14,6 @@ def TypesFinder(int n, int r):
 
     # Call the sum_of_squares function to populate results using divisors only
     sum_of_squares(n-1, r-1, 1, results, divs)
-
     # Convert results to list of lists and sort
     for res in results:
         L.append([1] + res)
@@ -44,7 +43,6 @@ def TypesFinderBis(int n, int nn, int r):
 cdef void sum_of_squares(int n, int number_of_squares, int b, list results, list divs):
     cdef int i, k
     cdef list current_list
-
     if n >= 0 and n >= b * b:
         if number_of_squares <= 1:
             if is_square(n) and isqrt(n) in divs:
@@ -55,7 +53,7 @@ cdef void sum_of_squares(int n, int number_of_squares, int b, list results, list
         for i in reversed(divs):
             if i < b:
                 break
-            if i * i <= n:  # Check if i^2 is feasible
+            if  i <= isqrt(n):  # Check if i^2 is feasible	# avoid i*i <= n, since int limit problem...
                 k = n - i * i
                 if k < 0:
                     continue  # Skip negative remainders
