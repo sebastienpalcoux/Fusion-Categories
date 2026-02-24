@@ -30,11 +30,28 @@ def CharacterTable(M):
 	ChR=[[Ch[i][P[j]] for j in range(l)] for i in range(l)]
 	return DimFirst(ChR)
 
+def CommutativeCharacterTable(M):
+	n=len(M)	
+	R = PolynomialRing(QQ, n, 'd')
+	dim = R.gens()
+	Eq=[dim[i]*dim[j]-sum(M[i][j][k]*dim[k] for k in range(n)) for i in range(n) for j in range(n)]
+	Eq.append(dim[0]-1)
+	Id=R.ideal(Eq); G=Id.groebner_basis()
+	FF=Id.variety(QQ.algebraic_closure())
+	Cht=[[f[d] for d in dim] for f in FF]	
+	Cht.sort(reverse=true)
+	Ch=[[Cht[i][j] for i in range(n)] for j in range(n)] 	# transpose for list
+	CC=[(sum([Ch[i][j]*(Ch[i][j].conjugate()) for i in range(n)])).n() for j in range(n)]
+	P=PermutSortReverse(CC)
+	ChR=[[Ch[i][P[j]] for j in range(n)] for i in range(n)]
+	return DimFirst(ChR)	
+		
+
 def DimFirst(Ch):
 	r=len(Ch)
 	for j in range(r):
 		L=[Ch[i][j] for i in range(r)]
-		if sum([(abs(l-abs(l))).n() for l in L])<0.0000000001:
+		if sum([(abs(l-abs(l))).n(digits=14) for l in L])<0.0000000001:
 			break
 	if j==0:
 		return Ch
@@ -47,7 +64,7 @@ def Transp(x,i,j):
 	if x==j:
 		return i
 	return x
-
+	
 def PermutSortReverse(A):
 	B=copy.deepcopy(A)
 	B.sort()
@@ -68,7 +85,7 @@ def Duality(S):
 				L.append(j)
 	return L
 
-def AlgDim(M): # use only for commutative cyclo
+def AlgDim(M): # M is a fusion data # use only for commutative cyclo
 	r=len(M)
 	d=Duality(M)
 	R=sum([matrix(QQ,M[i])*matrix(QQ,M[d[i]]) for i in range(r)])#; print([[R[i][j] for j in range(r)] for i in range(r)])
@@ -79,10 +96,20 @@ def AlgDim(M): # use only for commutative cyclo
 	LL=[UCF(l[0]) for l in L]
 	return max(LL)
 
+def AlgNorm(M): # m is a matrix list with cyclo norm
+		m=matrix(QQ,M)
+		f=m.minpoly()
+		ff=m.charpoly()
+		K.<a> = f.splitting_field()
+		n = K.conductor()
+		LL=ff.roots(CyclotomicField(n))
+		LLL=[UCF(l[0]) for l in LL]
+		return max(LLL)	
+
 def AlgCharacterTable(M): # use only in the commutative cyclo case
 	r=len(M)
 	rr=len(M[0])
-	Ch=CharacterTable(M)	# improve the code in order to do not have to use CharacterTable.
+	Ch=CommutativeCharacterTable(M)
 	Al=[]
 	for i in range(r):
 		Mi=matrix(QQ,M[i])
@@ -298,8 +325,9 @@ def Counter(r):		#upto rank r
 	C3=[len(l) for l in S3]
 	for fd in FD:
 		fd.sort()
-	print(FD)							
-	return [C1,sum(C1),C2,sum(C2),C3,sum(C3),S1,S2,S3]	 			
+	print([C1,sum(C1),C2,sum(C2),C3,sum(C3),S1,S2,S3])	
+	return FD #print(FD)							
+	#return [C1,sum(C1),C2,sum(C2),C3,sum(C3),S1,S2,S3]	 			
 
 
 
@@ -334,8 +362,8 @@ def preSmatrix(MZ):		# work for cyclo case only AND sorted.
 	BL=[]
 	r=len(M)
 	ACh=AlgCharacterTable(M)
-	CC=[sum([ACh[i][j]*(ACh[i][j].conjugate()) for i in range(r)]) for j in range(r)]; #print(CC) #Much quicker than FormalCodegrees(M)
-	dim=[ACh[i][0] for i in range(r)]; print([x.n() for x in dim])
+	CC=[sum([ACh[i][j]*(ACh[i][j].conjugate()) for i in range(r)]) for j in range(r)]; #print('CC = ', CC) #Much quicker than FormalCodegrees(M)
+	dim=[ACh[i][0] for i in range(r)]; #print([x.n() for x in dim])
 	CCC=[CC[0]/CC[i] for i in range(r)]
 	dim2=[dim[i]**2 for i in range(r)]
 	CCC.sort()				
@@ -343,17 +371,18 @@ def preSmatrix(MZ):		# work for cyclo case only AND sorted.
 	if not CCC==dim2:
 			print(dim2,CCC)
 			return [False]
-	T=ListToType(CC); #print(T)
-	TP=TypePerms(T)
+	T=ListToType(CC); #print('T=',T)
+	TP=TypePerms(T) #; print('TP = ', TP)
 	NCh=[[dim[j]*ACh[i][j] for j in range(r)] for i in range(r)]
-	ltp=len(TP)
-	for i in range(ltp):
-		#print(i,ltp)
-		P=TP[i]
-		Ch=[[NCh[ii][P[j]] for j in range(r)] for ii in range(r)]
-		MCh=matrix(Ch)
-		if MCh==MCh.transpose():
-			BL.append(Ch)
+	#ltp=len(TP)
+	for P in TP:
+		for Q in TP:
+			#print(i,ltp)
+			#P=TP[i]
+			Ch=[[NCh[P[ii]][Q[j]] for j in range(r)] for ii in range(r)]	# we use P and Q here, but only one of them is enough for function SelfTransposable
+			MCh=matrix(Ch)							# can we simplify here?
+			if MCh==MCh.transpose():
+				BL.append(Ch)
 	return [len(BL)>0,BL]
 	
 	
@@ -984,15 +1013,16 @@ def Verlinde(S):
 	D=sum([S[i][0]**2 for i in range(r)])
 	return [[[sum([S[l][i]*S[l][j]*(S[l][k].conjugate())/S[l][0] for l in range(r)])/D for k in range(r)] for j in range(r)] for i in range(r)]
 
+'''	
+def UCFnorm(M):		# here the norm is assumed to be cyclotomic 
+'''		
 
-# Warning STmatrix2 has no solution for [[[1, 0, 0, 0, 0], [0, 1, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, 1, 0], [0, 0, 0, 0, 1]], [[0, 1, 0, 0, 0], [0, 0, 1, 1, 0], [1, 0, 0, 0, 1], [0, 0, 1, 0, 1], [0, 1, 0, 1, 1]], [[0, 0, 1, 0, 0], [1, 0, 0, 0, 1], [0, 1, 0, 1, 0], [0, 1, 0, 0, 1], [0, 0, 1, 1, 1]], [[0, 0, 0, 1, 0], [0, 0, 1, 0, 1], [0, 1, 0, 0, 1], [1, 0, 0, 1, 1], [0, 1, 1, 1, 1]], [[0, 0, 0, 0, 1], [0, 1, 0, 1, 1], [0, 0, 1, 1, 1], [0, 1, 1, 1, 1], [1, 1, 1, 1, 2]]]
-# whereas STmatrix has (STmatrix2 no more updated to non-integral case?)
 
 def STmatrix2(MZ):							# much better than STmatrix?			## nn is for the conductor, put -1 for no constraint
 	M=SortFusionData(MZ)						# if pk too big then try STmatrix first (it was useful in practice)
 	BL=[]								# Warning: filter by ModularCriterion or SelfTransposable first
-	MD=[]
-	dim=[round(matrix(m).norm()) for m in M]		# warning: only for the integral case
+	MD=[]								# We are in the pseudo-unitary case (but the code could be extended to the pivotal case)
+	dim=[AlgNorm(m) for m in M]
 	D=sum([a^2 for a in dim])
 	[arg,MT,VK,KK]=SmithReduction(M)#preTmatrix(M,nn)
 	RR=PolynomialRing(QQ,len(VK),"k")
@@ -1007,7 +1037,7 @@ def STmatrix2(MZ):							# much better than STmatrix?			## nn is for the conduct
 		print('i=', i)
 		LK=multibase(i,KK)
 		TT=[BestQ(QQ(sum([bb[0]*LK[bb[1]] for bb in b]))) for b in LLB]
-		T=ListToT(TT)
+		T=ListToT(TT); print('T=',T)		
 		S=FromTMtoS(T,M,dim)
 		#print(S,T,M,dim,TT,D,C)
 		SL=TestST(S,T,M,dim,TT,D,C) #; print(SL)
@@ -1023,6 +1053,23 @@ def STmatrix2(MZ):							# much better than STmatrix?			## nn is for the conduct
 					BL.extend(IsoClassModularData(NS,NT))		# replace by normal form??
 	print(len(MD))
 	return MD
+	
+	'''
+		# to print the central charge earlier:
+		SqD=SqrtUCF(D)
+		SD=SqD[1]
+		pplus=sum([(dim[i]**2)*T[i] for i in range(len(T))])
+		ps=UCF(pplus/SD); print('ps = ', ps)
+		mp=ps.multiplicative_order()
+		if mp==+Infinity:
+			print('mp infinity')
+		else:
+			for p in range(mp):
+				if ps==E(mp)**p:
+					c=Integer(best(8*p,8*mp))/Integer(mp); print('c=',c)
+					break		
+		#	
+	'''
 
 def ComponentOrdering(TT,dim):
 	Ty=ListToType(dim)
@@ -1162,7 +1209,7 @@ def MagicCriterion(FD):
 			
 			
 def STmatrix(MZ,Cut,Part):					# Cut is the nb of part to divide pK, Part varies between 0 and Cut (the last is the rest)
-	M=SortFusionData(MZ)
+	M=SortFusionData(MZ)					# We are in the pseudo-unitary case (but the code could be extended to the pivotal case)
 	if (1-prod([matrix(m).norm() for m in M])).abs()<0.0001:
 		return 'pointed, use STmatrix2 or STmatrixCO'
 	MD=[]
@@ -1176,7 +1223,7 @@ def STmatrix(MZ,Cut,Part):					# Cut is the nb of part to divide pK, Part varies
 			if d!=d.conjugate():
 				aaaaaa=0; print('excluded by Theorem 2.1 (3.1)')
 				return []
-		D=sum([d**2 for d in dim])	# WARNING: in ng-rowell-wang-wen paper, that is D^2
+		D=sum([d**2 for d in dim])	# WARNING: in ng-rowell-wang-wen paper, that is denoted D^2
 		SqD=SqrtUCF(D)
 		if not SqD[0]:
 			print('excluded by Theorem 2.1 (5)','sqrt(dim) not cyclo')
@@ -1230,7 +1277,7 @@ def STmatrix(MZ,Cut,Part):					# Cut is the nb of part to divide pK, Part varies
 			print([i,pK])
 			LK=multibase(i,KK)
 			TT=[BestQ(QQ(sum([bb[0]*LK[bb[1]] for bb in b]))) for b in LLB]
-			#print('arg T', TT)
+			print('arg T', TT)
 			orT=lcm([t.denominator() for t in TT])
 			ND=CycloNorm(D)
 			if orT%orS!=0 or prime_factors(orT)!=prime_factors(ND):
@@ -1250,16 +1297,16 @@ def STmatrix(MZ,Cut,Part):					# Cut is the nb of part to divide pK, Part varies
 						for p in range(mp):
 							if ps==E(mp)**p:
 								c=Integer(best(8*p,8*mp))/Integer(mp)
-								aaaaaa=0#print('central charge = ', c)
+								aaaaaa=0; print('central charge = ', c)
 								break
-						MT=diagonal_matrix(T)	
+						MT=diagonal_matrix(T); print('MT = ', list(MT))
 						if MS**2 != D*C:
 							aaaaaa=0; print('excluded Theorem 2.1 (5.3)')
 						else:
 							for AS in NV:
-								MS=matrix(AS); AA=(MS*MT)**3; CC=pplus*D*C
-								if AA != CC:
-									print('excluded ProjRep')
+								MS=matrix(AS); AA=(MS*MT)**3; CC=pplus*D*C	# CC is diag * permutation, so a lot of zero entries
+								if AA != CC: #0!=0:#
+									print('excluded ProjRep'); print(list(MS),list(MT))#
 								else:	
 									nu1=[sum([M[j][k][i]*(dim[j]*(T[j]**1))*((dim[k]*(T[k]**1)).conjugate()) for j in range(r) for k in range(r)])/D for i in range(r)]
 									nu2=[sum([M[j][k][i]*(dim[j]*(T[j]**2))*((dim[k]*(T[k]**2)).conjugate()) for j in range(r) for k in range(r)])/D for i in range(r)]
