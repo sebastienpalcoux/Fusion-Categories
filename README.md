@@ -1,5 +1,5 @@
 The folders 
-- NewCritPaper
+- ENOcritPaper
 - IntegralPaper, 
 - ModularPaper, 
 - SimpleIntegral,
