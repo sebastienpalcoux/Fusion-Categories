@@ -1,4 +1,4 @@
-def ENOcrit(l):
+def NewCrit(l):
 	pt = l.count(1)
 	spt=set(Integer(pt).prime_factors())
 	d=sum(i**2 for i in l)
@@ -9,13 +9,13 @@ def ENOcrit(l):
 	for P in MP:
 		S0=list(set(P[0]))
 		S0.sort()
-		if ENOcritInter(S0,S,spt,pt,d):
+		if NewCritInter(S0,S,spt,pt,d):
 			M.append(P)
 	if len(M)>0 and len(M)<len(MP) and pt>1:
 		print('only need to consider the partitions in ', M)
 	return len(M)>0	
 	
-def ENOcritInter(S0,S,spt,pt,d):
+def NewCritInter(S0,S,spt,pt,d):
 	for i in S0[1:]:
 		for p in set(Integer(i).prime_factors())-spt:
 			c=0
