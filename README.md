@@ -1,7 +1,7 @@
 The folders 
 - IntegralPaper, 
 - ModularPaper,
-- ENOcritPaper
+- NewCritPaper
 - SimpleIntegral,
 
 (will) respectively contain the codes and data mentioned in the papers
