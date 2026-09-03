@@ -1,0 +1,35 @@
+name: sqrt6-kissing-certificate
+
+on:
+  push:
+    branches:
+      - gpt-pro/sqrt6-kissing-certificate
+    paths:
+      - 'LeanCertificates/Sqrt6KissingBound/**'
+      - '.github/workflows/sqrt6-kissing-certificate.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: leanprover/lean-action@v1
+        with:
+          lake-package-directory: LeanCertificates/Sqrt6KissingBound
+          build: true
+          test: false
+          lint: false
+          axiom-audit: true
+          axiom-audit-root: Sqrt6KissingBound
+          use-mathlib-cache: true
+      - name: Check manuscript-facing declarations
+        working-directory: LeanCertificates/Sqrt6KissingBound
+        run: lake env lean Axioms.lean
+      - name: Scan for proof holes
+        working-directory: LeanCertificates/Sqrt6KissingBound
+        run: |
+          if grep -R -n -E '(^|[^A-Za-z])(sorry|admit)([^A-Za-z]|$)|^[[:space:]]*axiom[[:space:]]|native_decide' --include='*.lean' .; then
+            echo 'Forbidden proof hole, project-defined axiom, or native_decide found.' >&2
+            exit 1
+          fi
