@@ -26,11 +26,12 @@ jobs:
       - name: Check manuscript-facing declarations
         working-directory: LeanCertificates/Sqrt6KissingBound
         run: lake env lean Axioms.lean
-      - name: Scan for proof holes
+      - name: Scan project sources for proof holes
         working-directory: LeanCertificates/Sqrt6KissingBound
         run: |
           pattern='(^|[[:space:]])(sorry|admit|native_decide)([[:space:]]|$)|^[[:space:]]*axiom[[:space:]]'
-          if grep -R -n -E "$pattern" --include='*.lean' .; then
+          if grep -R -n -E "$pattern" --include='*.lean' \
+              Sqrt6KissingBound Sqrt6KissingBound.lean Axioms.lean; then
             echo 'Forbidden proof hole, project-defined axiom, or unsafe evaluation shortcut found.' >&2
             exit 1
           fi
