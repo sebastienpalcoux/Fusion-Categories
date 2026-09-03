@@ -39,16 +39,21 @@ lemma twenty_div_nine_lt_sqrt6 : (20 : ℝ) / 9 < s6 := by
   have hsq : s6 ^ 2 = 6 := sqrt6_sq
   nlinarith
 
+lemma seven_div_three_lt_sqrt6 : (7 : ℝ) / 3 < s6 := by
+  have hnonneg : 0 ≤ s6 := Real.sqrt_nonneg 6
+  have hsq : s6 ^ 2 = 6 := sqrt6_sq
+  nlinarith
+
 lemma two_lt_sqrt6 : (2 : ℝ) < s6 := by
   have hnonneg : 0 ≤ s6 := Real.sqrt_nonneg 6
   have hsq : s6 ^ 2 = 6 := sqrt6_sq
   nlinarith
 
 lemma fourteen_lt_sqrt6_cubed : (14 : ℝ) < s6 ^ 3 := by
-  have hs : (20 : ℝ) / 9 < s6 := twenty_div_nine_lt_sqrt6
+  have hs : (7 : ℝ) / 3 < s6 := seven_div_three_lt_sqrt6
   have hsq : s6 ^ 2 = 6 := sqrt6_sq
   calc
-    (14 : ℝ) < 6 * ((20 : ℝ) / 9) := by norm_num
+    (14 : ℝ) = 6 * ((7 : ℝ) / 3) := by norm_num
     _ < 6 * s6 := by nlinarith
     _ = s6 ^ 3 := by rw [show s6 ^ 3 = s6 ^ 2 * s6 by ring, hsq]; ring
 
@@ -161,19 +166,21 @@ lemma count_le_fourteen_of_cap3_pack {N : ℕ}
     rw [mul_comm c (N : ℝ), mul_comm c (15 : ℝ)]
     exact hpack.trans_lt h15
   have hlt : (N : ℝ) < 15 := (mul_lt_mul_left hc).mp hltmul
-  exact_mod_cast (show N < 15 from by exact_mod_cast hlt).le
+  have hNlt : N < 15 := by exact_mod_cast hlt
+  omega
 
 lemma count_lt_sqrt6_cubed_of_cap3_pack {N : ℕ}
     (hpack : (N : ℝ) * (((2 : ℝ) - s3) / 4) ≤ 1) :
     (N : ℝ) < s6 ^ 3 := by
   have hN : N ≤ 14 := count_le_fourteen_of_cap3_pack hpack
-  exact (by exact_mod_cast hN : (N : ℝ) ≤ 14).trans_lt fourteen_lt_sqrt6_cubed
+  have hNreal : (N : ℝ) ≤ 14 := by exact_mod_cast hN
+  exact hNreal.trans_lt fourteen_lt_sqrt6_cubed
 
 /-- Dimension two forces the universal base to be at least `sqrt 6`. -/
 lemma universal_base_ge_sqrt6 {α : ℝ} (hα : 0 ≤ α)
     (h_two : (6 : ℝ) ≤ α ^ 2) : s6 ≤ α := by
-  have hs : s6 ^ 2 = 6 := sqrt6_sq
-  nlinarith [sq_nonneg (α - s6)]
+  have h := (Real.sqrt_le_sqrt).2 h_two
+  simpa [s6, Real.sqrt_sq hα] using h
 
 end
 
