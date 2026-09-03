@@ -182,7 +182,7 @@ lemma count_lt_sqrt6_cubed_of_cap3_pack {N : ℕ}
 /-- Dimension two forces the universal base to be at least `sqrt 6`. -/
 lemma universal_base_ge_sqrt6 {α : ℝ} (hα : 0 ≤ α)
     (h_two : (6 : ℝ) ≤ α ^ 2) : s6 ≤ α := by
-  have h := (Real.sqrt_le_sqrt).2 h_two
+  have h : Real.sqrt 6 ≤ Real.sqrt (α ^ 2) := Real.sqrt_le_sqrt h_two
   simpa [s6, Real.sqrt_sq hα] using h
 
 end
