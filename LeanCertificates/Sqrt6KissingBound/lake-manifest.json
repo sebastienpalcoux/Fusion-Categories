@@ -111,7 +111,7 @@
       "configFile": "lakefile.toml"
     }
   ],
-  "name": "sqrt6-kissing-bound",
+  "name": "«sqrt6-kissing-bound»",
   "lakeDir": ".lake",
   "fixedToolchain": false
 }
