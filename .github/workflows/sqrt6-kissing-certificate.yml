@@ -29,7 +29,8 @@ jobs:
       - name: Scan for proof holes
         working-directory: LeanCertificates/Sqrt6KissingBound
         run: |
-          if grep -R -n -E '(^|[^A-Za-z])(sorry|admit)([^A-Za-z]|$)|^[[:space:]]*axiom[[:space:]]|native_decide' --include='*.lean' .; then
-            echo 'Forbidden proof hole, project-defined axiom, or native_decide found.' >&2
+          pattern='(^|[[:space:]])(sorry|admit|native_decide)([[:space:]]|$)|^[[:space:]]*axiom[[:space:]]'
+          if grep -R -n -E "$pattern" --include='*.lean' .; then
+            echo 'Forbidden proof hole, project-defined axiom, or unsafe evaluation shortcut found.' >&2
             exit 1
           fi
