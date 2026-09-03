@@ -55,7 +55,8 @@ lemma fourteen_lt_sqrt6_cubed : (14 : ℝ) < s6 ^ 3 := by
   calc
     (14 : ℝ) = 6 * ((7 : ℝ) / 3) := by norm_num
     _ < 6 * s6 := by nlinarith
-    _ = s6 ^ 3 := by rw [show s6 ^ 3 = s6 ^ 2 * s6 by ring, hsq]; ring
+    _ = s6 ^ 3 := by
+      rw [show s6 ^ 3 = s6 ^ 2 * s6 by ring, hsq]
 
 lemma cap5_scaled_lower :
     1 < ((1 : ℝ) / 2 - 9 * s3 / 32) * s6 ^ 5 := by
@@ -115,7 +116,8 @@ lemma even_scaled (k : ℕ) :
       norm_num
   | succ k ih =>
       have h := D.scaled_step (n := 2 + 2 * k) (by omega) ih
-      convert h using 1 <;> omega
+      have hk : 2 + 2 * Nat.succ k = (2 + 2 * k) + 2 := by omega
+      simpa only [hk] using h
 
 lemma odd_scaled (k : ℕ) :
     1 ≤ D.cap (5 + 2 * k) * s6 ^ (5 + 2 * k) := by
@@ -124,7 +126,8 @@ lemma odd_scaled (k : ℕ) :
       simpa [D.cap_five] using cap5_scaled_lower.le
   | succ k ih =>
       have h := D.scaled_step (n := 5 + 2 * k) (by omega) ih
-      convert h using 1 <;> omega
+      have hk : 5 + 2 * Nat.succ k = (5 + 2 * k) + 2 := by omega
+      simpa only [hk] using h
 
 end CapData
 
@@ -143,7 +146,7 @@ lemma count_le_pow_of_pack {N n : ℕ} {c : ℝ}
   have h : c * (N : ℝ) ≤ c * s6 ^ n := by
     rw [mul_comm c (N : ℝ)]
     exact hpack.trans hscaled
-  exact (mul_le_mul_left hc).mp h
+  exact le_of_mul_le_mul_left h hc
 
 lemma count_le_sqrt6_pow_even (D : CapData) {N k : ℕ}
     (hpack : (N : ℝ) * D.cap (2 + 2 * k) ≤ 1) :
@@ -165,7 +168,7 @@ lemma count_le_fourteen_of_cap3_pack {N : ℕ}
   have hltmul : c * (N : ℝ) < c * 15 := by
     rw [mul_comm c (N : ℝ), mul_comm c (15 : ℝ)]
     exact hpack.trans_lt h15
-  have hlt : (N : ℝ) < 15 := (mul_lt_mul_left hc).mp hltmul
+  have hlt : (N : ℝ) < 15 := lt_of_mul_lt_mul_left hltmul hc.le
   have hNlt : N < 15 := by exact_mod_cast hlt
   omega
 
