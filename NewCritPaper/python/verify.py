@@ -1,5 +1,6 @@
 """Cross-check the column tests and independently reconstruct the final census."""
-from collections import Counter
+from collections import Counter, defaultdict
+from functools import lru_cache
 from hashlib import sha256
 from itertools import combinations, combinations_with_replacement, product
 from math import gcd, isqrt, lcm
@@ -290,6 +291,90 @@ def reference_blocks(x, sizes, g, total, rank):
     return (budget, -g) in totals
 
 
+def reference_symmetric(neutral, row, g, total):
+    """Choose a whole minimal witness set at a time, keeping labeled edges."""
+    dims = tuple(y for y in row if y > 1)
+    labels = defaultdict(list)
+    for i, y in enumerate(dims):
+        labels[y].append(i)
+    adjoint = []
+    for y, slots in labels.items():
+        adjoint.extend(slots[:neutral.count(y)])
+    adjoint.sort(key=dims.__getitem__, reverse=True)
+    is_adjoint = set(adjoint)
+    cost = {(x, y): lcm(x, y)**2 for x in labels for y in labels}
+    budget = {x: total - g*x*x for x in labels}
+    if any(b < 0 for b in budget.values()):
+        return False
+    basis = {}
+    for x in set(neutral) - {1}:
+        affordable = [y for y in labels if cost[x,y] <= min(budget[x], budget[y])]
+        admissible = []
+        for number in range(1, len(affordable) + 1):
+            for subset in combinations(affordable, number):
+                if (sum(cost[x,y] for y in subset) > budget[x]
+                        or g % gcd(*(y*y // gcd(x,y) for y in subset))):
+                    continue
+                support = frozenset(subset)
+                if not any(other <= support for other in admissible):
+                    admissible.append(support)
+        basis[x] = admissible
+
+    @lru_cache(maxsize=8192)
+    def search(supports, slack):
+        choices = []
+        forced = defaultdict(int)
+        for i in adjoint:
+            x = dims[i]
+            present = supports[i]
+            if any(support <= present for support in basis[x]):
+                continue
+            choices_at_i = []
+            for support in basis[x]:
+                needed = support - present
+                if sum(cost[x,y] for y in needed) > slack[i]:
+                    continue
+                targets = []
+                for y in sorted(needed):
+                    unique = {}
+                    for j in labels[y]:
+                        if cost[x,y] <= slack[j]:
+                            unique.setdefault((j == i, slack[j], j in is_adjoint, supports[j]), j)
+                    targets.append(tuple(unique.values()))
+                choices_at_i.extend(product(*targets))
+            if not choices_at_i:
+                return False
+            required = set(dims[j] for j in choices_at_i[0])
+            for option in choices_at_i[1:]:
+                required.intersection_update(dims[j] for j in option)
+            # Count terms already forced at the other ends of these edges.
+            for y in required:
+                forced[y] += cost[x, y]
+                if forced[y] > sum(slack[j] for j in labels[y]):
+                    return False
+            choices.append((len(choices_at_i), i, choices_at_i))
+        if not choices:
+            return True
+        _, i, options = min(choices)
+        x = dims[i]
+        for option in options:
+            new_slack = list(slack)
+            new_supports = list(supports)
+            for j in option:
+                y = dims[j]
+                amount = cost[x,y]
+                new_slack[i] -= amount
+                new_supports[i] |= {y}
+                if i != j:
+                    new_slack[j] -= amount
+                    new_supports[j] |= {x}
+            if search(tuple(new_supports), tuple(new_slack)):
+                return True
+        return False
+
+    return search((frozenset(),) * len(dims), tuple(budget[x] for x in dims))
+
+
 def reference_passes(row):
     g = row.count(1)
     sizes = Counter(row)
@@ -297,8 +382,9 @@ def reference_passes(row):
     total = sum(y*y for y in row)
     for parts in reference_gradings(row):
         neutral = sorted(set(parts[0]) - {1}, reverse=True)
-        if all(reference_column(x, sizes, g, total, "gcd")
-               and reference_blocks(x, sizes, g, total, len(row)) for x in neutral):
+        if (all(reference_column(x, sizes, g, total, "gcd")
+                and reference_blocks(x, sizes, g, total, len(row)) for x in neutral)
+                and reference_symmetric(parts[0], row, g, total)):
             return True
     return False
 
@@ -318,6 +404,30 @@ def check_full_lists():
         check(kept, sorted(expected), f"independent final list from {name}")
 
 
+def check_symmetric_support():
+    data = HERE / "data"
+    for filename, survivors in (
+        ("rank14.txt", [1, 2]),
+        ("rank25-odd.txt", []),
+        ("rank25-odd-91.txt", [8, 26, 37]),
+        ("rank15-examples.txt", [1, 2, 4, 7, 8, 9, 11, 12, 13, 14, 16]),
+    ):
+        rows = read_types(data / filename)
+        actual = [i for i, row in enumerate(rows, 1) if passes(row, "symmetric")]
+        check(actual, survivors, (filename, "symmetric supports"))
+
+    # Rank-15 row 17: four entries in the column of dimension 175 each
+    # contribute 12600 squared, before the unit is counted.
+    row = read_types(data / "rank15-examples.txt")[16]
+    total = sum(y*y for y in row)
+    check((row.count(1), row.count(175), row.count(12600), row.count(2520), total),
+          (1, 1, 3, 1, 4*12600**2), "rank-15 row 17: multiplicities and global dimension")
+    for x in (12600, 2520):
+        possible = {y for y in row if y > 1 and y % 3 and lcm(x, y)**2 + x*x <= total}
+        check(possible, {175}, ("rank-15 row 17: forced dimension", x))
+        check(lcm(x, 175), 12600, ("rank-15 row 17: required cost", x))
+
+
 def check_centers():
     # Untwisted doubles of S3, A4, A5, and the nonabelian group of order 21.
     centers = {
@@ -327,7 +437,7 @@ def check_centers():
         "C7:C3": (1,)*3 + (3,)*16 + (7,)*6,
     }
     for group, row in centers.items():
-        for mode in ("single", "cover", "gcd", "blocks"):
+        for mode in ("single", "cover", "gcd", "blocks", "symmetric", "combined"):
             check(passes(row, mode), True, (group, mode))
 
 
@@ -340,8 +450,9 @@ if __name__ == "__main__":
     check_gradings()
     check_block_search()
     check_published_list()
+    check_symmetric_support()
     check_full_lists()
     check_centers()
     print("All five input digests and the rank-14 and odd rank-25 certificates agree.")
     print("Independent full-list checks agree for ranks 14 and 15 and odd rank 25.")
-    print("Column and block tests, grading partitions, the published list and four group centers agree.")
+    print("Column, block, and symmetry tests, grading partitions, the published list and four group centers agree.")

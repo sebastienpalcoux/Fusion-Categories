@@ -6,7 +6,7 @@ from criterion import passes, read_types
 
 
 HERE = Path(__file__).resolve().parent
-MODES = ("single", "cover", "gcd", "blocks")
+MODES = ("single", "cover", "gcd", "blocks", "combined")
 
 
 def write_types(types, path):
@@ -47,11 +47,11 @@ def census(show_stages=False):
         "odd rank 25, initial": earlier,
     }
     expected = [
-        (34, 2, 2, 2, 2), (399, 140, 132, 110, 47), (8628, 2341, 1861, 1861, 311),
-        (18, 18, 14, 14, 3), (3, 0, 0, 0, 0), (91, 3, 3, 3, 0),
+        (34, 2, 2, 2, 2, 2), (399, 140, 132, 110, 47, 45), (8628, 2341, 1861, 1861, 311, 250),
+        (18, 18, 14, 14, 3, 3), (3, 0, 0, 0, 0, 0), (91, 3, 3, 3, 0, 0),
     ]
     if show_stages:
-        print(f"{'dataset':24} {'input':>6} {'single':>6} {'cover':>6} {'gcd':>6} {'blocks':>6}")
+        print(f"{'dataset':24} {'input':>6}" + "".join(f"{mode:>10}" for mode in MODES))
     else:
         print(f"{'dataset':24} {'input':>9} {'excluded':>9} {'remaining':>9}")
     results = {}
@@ -66,13 +66,13 @@ def census(show_stages=False):
                 removed = set(types) - set(kept)
                 if removed != {examples[i-1] for i in (3, 5, 6, 10)}:
                     raise AssertionError("unexpected simultaneous-prime exclusions")
-            if name == "odd rank 25, initial" and mode != "blocks":
+            if name == "odd rank 25, initial" and mode in ("single", "cover", "gcd"):
                 if kept != [earlier[i-1] for i in (8, 26, 37)]:
                     raise AssertionError("unexpected rank-25 support-test survivors")
             previous = kept
             actual.append(len(kept))
         if show_stages:
-            print(f"{name:24}" + "".join(f"{a:7}" for a in actual))
+            print(f"{name:24} {actual[0]:6}" + "".join(f"{count:10}" for count in actual[1:]))
         else:
             print(f"{name:24} {len(types):9} {len(types) - len(previous):9} {len(previous):9}")
         if tuple(actual) != counts:
@@ -88,7 +88,7 @@ def census(show_stages=False):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--write-survivors", metavar="PATH",
-                        help="export all rank-15 types passing the block test")
+                        help="export all rank-15 types passing the combined tests")
     parser.add_argument("--stages", action="store_true",
                         help="show counts for each arithmetic test")
     args = parser.parse_args()
@@ -97,4 +97,4 @@ if __name__ == "__main__":
         raise AssertionError("rank-15 result differs from the supplied survivor list")
     if args.write_survivors:
         write_types(survivors, args.write_survivors)
-    print(f"rank 15, all: {len(survivors)} types pass the block test")
+    print(f"rank 15, all: {len(survivors)} types pass the combined tests")
