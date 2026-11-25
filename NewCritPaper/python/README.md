@@ -1,8 +1,8 @@
 # Dimension-type tests for integral modular categories
 
-This directory accompanies the paper by Jingcheng Dong and Sébastien Palcoux. A type lists the Frobenius–Perron dimensions of the simple objects, with repetitions. All calculations use exact integers and the Python 3.9+ standard library.
+This directory accompanies [*A new criterion for integral modular categorification*](../README.md) by Jingcheng Dong and Sébastien Palcoux. A type lists the Frobenius–Perron dimensions of the simple objects, with repetitions. All calculations use exact integers and the Python 3.9+ standard library.
 
-From this directory run
+Run [reproduce.py](reproduce.py) and [verify.py](verify.py) from this directory
 
 ```sh
 python3 reproduce.py
@@ -25,7 +25,7 @@ To export the final rank-15 list to another file, run `python3 reproduce.py --wr
 
 Given a type, `passes(dimensions, test="blocks")` in [criterion.py](criterion.py) returns whether it survives the selected necessary condition. Let `D` be the sum of squared dimensions and `g` the number of entries equal to 1. The program enumerates all unordered partitions into `g` parts of square sum `D/g`. These include every universal grading and can also include partitions which no category realizes. In a realizable partition, each component containing an invertible is a translate of the neutral component and has the same type. The lexicographically first part contains a 1, so it has the neutral type in any actual grading. The candidate survives if some partition passes the column test for every noninvertible dimension `x` of its first part.
 
-For each such `x`, a distinct noninvertible dimension `y` costs `lcm(x,y)**2` against the budget `D - g*x*x`.
+The two parts of Theorem 1.1 give the tests below. In (1.1), each non-invertible simple of dimension `y` in the support of the column contributes `lcm(x,y)**2` to a sum bounded by `D - g*x*x`. By (1.2), the gcd of `y*y // gcd(x,y)` over the non-invertible support divides `g`. Since each of these integers is divisible by `y`, each prime coprime to `g` needs a witness dimension coprime to it. In the perfect case (`g = 1`), (1.2) is equivalent to the non-invertible dimensions in the support having gcd one.
 
 - `single` checks separately for each prime dividing `x` but not `g` that at least one affordable `y` is prime to it.
 - `cover` requires one subset of dimensions within budget that covers all these primes. Each selected dimension can cover several primes.
@@ -41,11 +41,11 @@ The final `blocks` test imposes the gcd condition for every adjoint dimension an
 
 [blocks.py](blocks.py) looks for one pair per noninvertible dimension, with total weighted trace `−g` and total weighted energy `D/x² − g`. The weights are respectively `y²/gcd(x,y)` and `(lcm(x,y)/x)²`. The cutoff is equivalent to choosing `x` at least as large as the root-mean-square simple dimension. Passing the computation is a necessary condition for categorification.
 
-[verify.py](verify.py) independently recomputes the final survivor lists from all supplied inputs. It places the objects in components one at a time, enumerates witness subsets directly, and accumulates attainable pairs of weighted energy and trace one dimension at a time. It compares the full rank-15 result with all 358 rows of the supplied list. It also checks the individual algorithms on small inputs, compares the original single-prime survivors with the digest of the published list, and tests the untwisted centers for `S3`, `A4`, `A5`, and the nonabelian group of order 21.
+[verify.py](verify.py) independently recomputes the final survivor lists from all supplied inputs. It places the objects in components one at a time, enumerates witness subsets directly, and accumulates attainable pairs of weighted energy and trace one dimension at a time. It compares the full rank-15 result with all 358 rows of the [supplied list](data/rank15-survivors.txt). It also checks the individual algorithms on small inputs, compares the original single-prime survivors with the digest of the published list, and tests the untwisted centers for `S3`, `A4`, `A5`, and the nonabelian group of order 21.
 
-The verifier also checks the arithmetic certificates in the paper directly against the input rows. At rank 14 it checks the stated column and prime for each of the 32 exclusions. On the initial odd rank-25 list it checks the single-prime obstruction in 88 rows and the three centered-residue inequalities in rows 8, 26 and 37.
+The [verifier](verify.py) also checks the paper’s rank-14 hand example, column and prime certificates for all 32 rank-14 exclusions, and the three dimension and prime choices for the [residual odd rank-25 types](data/rank25-odd.txt). On the [initial list of 91 odd rank-25 types](data/rank25-odd-91.txt), it checks the single-prime obstruction in 88 rows. In the remaining rows 8, 26 and 37, the largest multiplicity is eight and the dimension is divisible by 23, 19 and 37, respectively. Each prime exceeds twice the largest multiplicity plus one, contrary to [Alekseyev–Bruns–Palcoux–Petrov, Theorem 8.5](https://arxiv.org/abs/2302.01613). The following calculation gives a second exclusion of the same three rows.
 
-## Three arithmetic exclusions at rank 25
+## An independent calculation for the three odd rank-25 rows
 
 Rows 8, 26 and 37 of the initial list each have one invertible and total dimension $9x^2$, where $x$ is the largest simple dimension. Fix a simple $X$ of dimension $x$. The unit uses one of the nine units in the normalized column norm. If a dimension $y$ fails to divide $x$, the odd integer $y/\gcd(x,y)$ is at least three. A nonzero entry of this dimension would use at least nine units in the averaged norm, so all such entries vanish.
 
@@ -61,7 +61,7 @@ For each remaining non-unit simple $Y$, write $y=\mathrm{FPdim}(Y)$ and $z_Y=s_{
 
 Each file in [data](data) has one type per line, with dimensions in nondecreasing order. Row numbers start at 1. The following links identify a fixed upstream revision.
 
-`reproduce.py` validates every input row before grouping by the number of invertibles. It checks that the 18 rank-15 examples belong to the full rank-15 list and that the three residual odd rank-25 types belong to the original 91. `verify.py` checks all five ordered input lists against SHA-256 digests of the archived tables, using decimal integers separated by one space and one newline per row. This check includes rows eliminated by the first test. [Archived tables](https://github.com/sebastienpalcoux/Fusion-Categories/tree/f095dd0b5484d1903572a12abda275ab76ab4097/NewCritPaper/python/data)
+[reproduce.py](reproduce.py) validates every input row before grouping by the number of invertibles. It checks that the 18 rank-15 examples belong to the full rank-15 list and that the three residual odd rank-25 types belong to the original 91. [verify.py](verify.py) checks all five ordered input lists against SHA-256 digests of the archived tables, using decimal integers separated by one space and one newline per row. This check includes rows eliminated by the first test. [Archived tables](https://github.com/sebastienpalcoux/Fusion-Categories/tree/f095dd0b5484d1903572a12abda275ab76ab4097/NewCritPaper/python/data)
 
 - [rank14.txt](data/rank14.txt) contains the seven non-perfect and 27 perfect residual types. It has the same rows as the upstream list `Lin`, with the seven non-perfect types in their original order. [Rank-14 investigation](https://github.com/sebastienpalcoux/Fusion-Categories/blob/06f3a37b086c0591e086a3aed9a9458f4270165f/ModularPaper/Data/InvestRank14.txt)
 - [rank15.txt](data/rank15.txt) is the sorted union of the 262 entries in the displayed `Lout` and the 8,765 entries in the displayed `L2` of the rank-15 investigation. The old surviving arrays are `NP` and `P`. The lists here use an expanded, whitespace-separated format. [Input](https://github.com/sebastienpalcoux/Fusion-Categories/blob/06f3a37b086c0591e086a3aed9a9458f4270165f/ModularPaper/Data/InvestRank15.txt) · [Original 2,481 survivors](https://github.com/sebastienpalcoux/Fusion-Categories/blob/06f3a37b086c0591e086a3aed9a9458f4270165f/NewCritPaper/Rank15/RemainingTypes.txt)

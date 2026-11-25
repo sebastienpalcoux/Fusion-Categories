@@ -131,7 +131,17 @@ def check_source_lists():
 
 def check_rank14_certificates():
     rows = read_types(HERE / "data" / "rank14.txt")
-    # The five lines give (q, p, row numbers) in the order of the paper.
+    # In the worked example the neutral component contains every dimension
+    # smaller than 180 and one of the three simples of dimension 180.
+    example = rows[2]
+    check((example.count(1), example.count(180), sum(y*y for y in example if y < 180)),
+          (2, 3, 180**2), "rank-14 hand example: grading")
+    check(36 in example and {y for y in example if y > 1 and y % 3} == {40},
+          True, "rank-14 hand example: column and witness")
+    check(lcm(36, 40)**2 + 2*36**2 > sum(y*y for y in example),
+          True, "rank-14 hand example: norm inequality")
+    # Each triple gives q, the prime p and the row numbers; the column
+    # dimension is twice the largest simple dimension divided by q.
     groups = (
         (2, 3, (3, 4, 6, 7)),
         (2, 5, (5, 9, 11, 13, 15, 16, 19, 20, 21, 22, 23, 24, 27, 28, 30, 31, 34)),
@@ -161,7 +171,19 @@ def check_rank14_certificates():
 
 
 def check_rank25_certificates():
+    residual = read_types(HERE / "data" / "rank25-odd.txt")
+    choices = [(4095, 13, {75, 175}), (2925, 5, {91}), (135, 3, {385})]
+    check(len(residual), len(choices), "odd rank 25: residual row count")
+    for row, (x, p, dimensions) in zip(residual, choices):
+        check(row.count(1) == 1 and x in row and x % p == 0,
+              True, ("residual odd rank 25", x, "adjoint column and prime"))
+        check({y for y in row if y > 1 and y % p}, dimensions, (x, "witness dimensions"))
+        check(all(lcm(x, y)**2 == sum(v*v for v in row) for y in dimensions),
+              True, ("residual odd rank 25", x, "exhausted norm"))
     rows = read_types(HERE / "data" / "rank25-odd-91.txt")
+    # The primes in the manuscript's multiplicity obstruction (ABPP, Thm. 8.5).
+    primes = {8: 23, 26: 19, 37: 37}
+    # Additional centered-residue certificates, explained in the README.
     # (largest dimension, modulus, multiplier, weighted residue square sum)
     exceptions = {
         8: (36225, 289, 78, 760),
@@ -180,6 +202,11 @@ def check_rank25_certificates():
         excluded = any(gcd(x, *(y for y in dims if lcm(x, y) < root)) > 1 for x in dims)
         check(excluded, i not in exceptions, ("odd rank 25", i, "single prime"))
         if i in exceptions:
+            prime = primes[i]
+            largest_multiplicity = max(Counter(row).values())
+            check(largest_multiplicity, 8, ("odd rank 25", i, "maximum multiplicity"))
+            check(total % prime == 0 and prime > 2*largest_multiplicity+1,
+                  True, ("odd rank 25", i, "prime and multiplicity bound"))
             x, modulus, multiplier, expected = exceptions[i]
             check((max(row), root), (x, 3*x), ("odd rank 25", i, "largest column"))
             # The budget is eight. If y does not divide x, the odd norm
