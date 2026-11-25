@@ -266,7 +266,7 @@ def symmetric_support_passes(neutral, dimensions, invertibles, total):
 
 def passes(dimensions, test="combined"):
     """Return whether some potential grading passes the selected tests."""
-    if test not in ("single", "cover", "gcd", "blocks", "symmetric", "combined"):
+    if test not in ("single", "cover", "gcd", "blocks", "symmetric", "manuscript", "combined"):
         raise ValueError(f"unknown test: {test!r}")
     dimensions = tuple(dimensions)
     if not dimensions or any(type(d) is not int or d <= 0 for d in dimensions):
@@ -281,8 +281,9 @@ def passes(dimensions, test="combined"):
     del multiplicities[1]
     noninvertible = tuple(sorted(multiplicities))
     support_test = test if test in ("single", "cover") else "gcd"
-    use_blocks = test in ("blocks", "combined")
-    use_symmetry = test in ("symmetric", "combined")
+    use_blocks = test in ("blocks", "manuscript", "combined")
+    use_symmetry = test in ("symmetric", "manuscript", "combined")
+    use_orbit_refinements = test in ("symmetric", "combined")
 
     @lru_cache(maxsize=None)
     def passes_column(x):
@@ -307,8 +308,10 @@ def passes(dimensions, test="combined"):
         # obtained from the neutral block by tensoring with that object.
         # Thus its dimension multiset is the neutral type. The first
         # block contains 1 since the expanded blocks are sorted.
-        if use_symmetry and (not grading_types_compatible(partition)
-                             or not orbit_columns_fit(partition, noninvertible, invertibles, total)):
+        if use_orbit_refinements and (
+            not grading_types_compatible(partition)
+            or not orbit_columns_fit(partition, noninvertible, invertibles, total)
+        ):
             continue
         if passes_neutral(partition[0]):
             return True

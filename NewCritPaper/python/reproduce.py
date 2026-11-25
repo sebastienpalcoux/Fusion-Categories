@@ -6,10 +6,10 @@ from criterion import passes, read_types
 
 
 HERE = Path(__file__).resolve().parent
-MODES = ("single", "cover", "gcd", "blocks", "symmetric", "combined")
+MODES = ("single", "cover", "gcd", "blocks", "symmetric", "manuscript", "combined")
 PREREQUISITES = {
     "single": (), "cover": ("single",), "gcd": ("cover",), "blocks": ("gcd",),
-    "symmetric": ("gcd",), "combined": ("blocks", "symmetric"),
+    "symmetric": ("gcd",), "manuscript": ("blocks",), "combined": ("manuscript", "symmetric"),
 }
 
 
@@ -32,7 +32,7 @@ def check_dataset(filename, expected_rank, odd_perfect=False):
     return types
 
 
-def census(show_stages=False):
+def census(show_stages=False, manuscript=False):
     rank14 = check_dataset("rank14.txt", 14)
     rank15 = check_dataset("rank15.txt", 15)
     examples = check_dataset("rank15-examples.txt", 15)
@@ -51,19 +51,22 @@ def census(show_stages=False):
         "odd rank 25, initial": earlier,
     }
     expected = [
-        (34, 2, 2, 2, 2, 2, 2), (399, 140, 132, 110, 47, 74, 41),
-        (8628, 2341, 1861, 1861, 311, 1077, 250), (18, 18, 14, 14, 3, 11, 3),
-        (3, 0, 0, 0, 0, 0, 0), (91, 3, 3, 3, 0, 0, 0),
+        (34, 2, 2, 2, 2, 2, 2, 2), (399, 140, 132, 110, 47, 74, 45, 41),
+        (8628, 2341, 1861, 1861, 311, 1077, 250, 250), (18, 18, 14, 14, 3, 11, 3, 3),
+        (3, 0, 0, 0, 0, 0, 0, 0), (91, 3, 3, 3, 0, 0, 0, 0),
     ]
     if show_stages:
         print(f"{'dataset':24} {'input':>6}" + "".join(f"{mode:>10}" for mode in MODES))
     else:
         print(f"{'dataset':24} {'input':>9} {'excluded':>9} {'remaining':>9}")
+    # A manuscript run requires only the tests used in the paper. Requesting
+    # the full stage table explicitly adds the repository's optional tests.
+    modes = MODES if show_stages or not manuscript else ("single", "cover", "gcd", "blocks", "manuscript")
     results = {}
     for (name, types), counts in zip(datasets.items(), expected):
         by_mode = {}
         actual = [len(types)]
-        for mode in MODES:
+        for mode in modes:
             kept = [t for t in types if passes(t, mode)]
             for prerequisite in PREREQUISITES[mode]:
                 if not set(kept).issubset(by_mode[prerequisite]):
@@ -77,13 +80,15 @@ def census(show_stages=False):
                     raise AssertionError("unexpected rank-25 support-test survivors")
             by_mode[mode] = kept
             actual.append(len(kept))
-        final = by_mode["combined"]
+        final = by_mode["manuscript" if manuscript else "combined"]
         if show_stages:
             print(f"{name:24} {actual[0]:6}" + "".join(f"{count:10}" for count in actual[1:]))
         else:
             print(f"{name:24} {len(types):9} {len(types) - len(final):9} {len(final):9}")
-        if tuple(actual) != counts:
-            raise AssertionError(f"{name}: expected {counts}, obtained {actual}")
+        expected_by_mode = dict(zip(MODES, counts[1:]))
+        selected_counts = [counts[0], *(expected_by_mode[mode] for mode in modes)]
+        if actual != selected_counts:
+            raise AssertionError(f"{name}: expected {selected_counts}, obtained {actual}")
         results[name] = final
     if results["rank 14, residual"] != rank14[:2]:
         raise AssertionError("unexpected rank-14 survivors")
@@ -95,13 +100,17 @@ def census(show_stages=False):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--write-survivors", metavar="PATH",
-                        help="export all rank-15 types passing the combined tests")
+                        help="export the surviving rank-15 types for the selected tests")
     parser.add_argument("--stages", action="store_true",
                         help="show counts for each arithmetic test")
+    parser.add_argument("--manuscript", action="store_true",
+                        help="report the tests in the paper, before the optional orbit and grading refinements")
     args = parser.parse_args()
-    survivors = census(show_stages=args.stages)
-    if survivors != read_types(HERE / "data" / "rank15-survivors.txt"):
+    survivors = census(show_stages=args.stages, manuscript=args.manuscript)
+    filename = "rank15-manuscript-survivors.txt" if args.manuscript else "rank15-survivors.txt"
+    if survivors != read_types(HERE / "data" / filename):
         raise AssertionError("rank-15 result differs from the supplied survivor list")
     if args.write_survivors:
         write_types(survivors, args.write_survivors)
-    print(f"rank 15, all: {len(survivors)} types pass the combined tests")
+    scope = "manuscript" if args.manuscript else "combined"
+    print(f"rank 15, all: {len(survivors)} types pass the {scope} tests")

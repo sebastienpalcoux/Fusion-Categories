@@ -2,32 +2,26 @@
 
 This directory accompanies [*A new criterion for integral modular categorification*](../README.md) by Jingcheng Dong and Sébastien Palcoux. A type lists the Frobenius–Perron dimensions of the simple objects, with repetitions. All calculations use exact integers and the Python 3.9+ standard library.
 
-Run [reproduce.py](reproduce.py) and [verify.py](verify.py) from this directory
+To reproduce the manuscript and independently verify its results, run these commands from this directory.
 
 ```sh
-python3 reproduce.py
+python3 reproduce.py --manuscript
 python3 verify.py
 ```
 
-The [rank-15 census](data/rank15.txt) gives the following counts.
+The manuscript tests the [rank-15 census](data/rank15.txt) with Theorem 1.1, using a common symmetric support and the bounds for equal dimensions described below.
 
 | Candidate types | Input | Excluded | Remaining |
 |---|---:|---:|---:|
-| Non-perfect | 399 | 358 | 41 |
+| Non-perfect | 399 | 354 | 45 |
 | Perfect | 8,628 | 8,378 | 250 |
-| Total | 9,027 | 8,736 | 291 |
+| Total | 9,027 | 8,732 | 295 |
 
-To export the 291 types, run [`python3 reproduce.py --write-survivors remaining.txt`](reproduce.py). The program compares every computed row with the [published list](data/rank15-survivors.txt). The symmetric-support and equal-dimension tests are separate refinements of the single-column gcd test. The former leaves 74 non-perfect and 1,077 perfect rank-15 candidates; imposing both for the same possible grading gives the table above. For intermediate arithmetic checks on all datasets, use [`python3 reproduce.py --stages`](reproduce.py).
+The [manuscript list](data/rank15-manuscript-survivors.txt) contains all 295 types, one per line. To export it from the census, run `python3 reproduce.py --manuscript --write-survivors remaining.txt`. For intermediate counts on all datasets, use `python3 reproduce.py --stages`. [Reproduction script](reproduce.py)
 
 ## Algorithm
 
-Given a type, `passes(dimensions, test="combined")` in [criterion.py](criterion.py) returns whether it survives the selected necessary condition. Let `D` be the sum of squared dimensions and `g` the number of entries equal to 1. The program enumerates all unordered partitions into `g` parts of square sum `D/g`. These include every universal grading and can also include partitions which no category realizes. In a realizable partition, each component containing an invertible is a translate of the neutral component and has the same type. The lexicographically first part contains a 1, so it has the neutral type in any actual grading.
-
-In the symmetric and combined tests we also use translation and duality on grades. The image of the invertibles in the grading group has order $h$, the number of components containing an invertible. Each of its cosets consists of $h$ components of one type. In a quotient of odd order every nonidentity coset pairs with a distinct inverse coset of the same component type. In particular, with three invertibles the two nonneutral components must have identical types. In [rows 17 and 18 of the full rank-15 census](data/rank15.txt#L17-L18) all dimensions of odd multiplicity would then occur in the neutral component. In row 17, its unique simple of dimension 6 already fills that component's dimension $36$, leaving no room for the unit. In row 18 the required simples of dimensions $1,2,3,4,6$ contribute $66>48$. Each candidate must pass all the tests for the same proposed grading.
-
-Tensoring by invertibles also preserves the support of an $S$-column, since a fusion character takes an invertible to a root of unity. Let $k$ count the invertibles in the neutral component. The stabilizer of a simple of dimension $x$ belongs to this kernel, and its order divides $x^2$. Thus within any component the number of simples of dimension $x$ is divisible by $k/\gcd(k,x^2)$. The full orbit of such a simple has size divisible by $g/\gcd(k,x^2)$. A supported entry at dimensions $x,y$ costs at least $g/\gcd(k,y^2)$ copies of $\mathrm{lcm}(x,y)^2$ in the first column, and $g/\gcd(k,x^2)$ copies in the other. The orbit test applies these lower bounds to the single-column gcd search. [Dong–Natale–Vendramin, Lemma 2.2](https://doi.org/10.1142/S0219498815500115)
-
-In [row 9 of the full rank-15 census](data/rank15.txt#L9), the four adjoint simples of dimension 3 form a single orbit. By (1.2) each must meet a non-invertible of dimension prime to 3, necessarily of dimension 4. A column at that dimension would therefore have four contributions of $12^2$ to (1.1), already the global dimension. In [row 10](data/rank15.txt#L10), a dimension-3 simple has trivial stabilizer and hence orbit size four, but the type contains only two.
+Given a type, `passes(dimensions, test="manuscript")` in [criterion.py](criterion.py) applies the manuscript tests. Let `D` be the sum of squared dimensions and `g` the number of entries equal to 1. The program enumerates all unordered partitions into `g` parts of square sum `D/g`. These include every universal grading and can also include partitions which no category realizes. In a realizable partition, each component containing an invertible is a translate of the neutral component and has the same type. The lexicographically first part contains a 1, so it has the neutral type in any actual grading. All conditions must hold for the same proposed grading.
 
 For each possible adjoint dimension `x`, (1.1) of Theorem 1.1 allows a total of `D - g*x*x` for the non-invertible terms in the column. Every supported simple of dimension `y` contributes at least `lcm(x,y)**2`. By (1.2), the gcd of `y*y // gcd(x,y)` over this support divides `g`. Each coefficient is a multiple of `y` and divides `y*y`. In a perfect type (`g = 1`), this is exactly (1.3): the supported non-unit dimensions have gcd one. The [support test](criterion.py) searches for a nonempty subset of dimensions satisfying the bound and divisibility, retaining the least cost for each gcd. Repeated dimensions do not affect a gcd and are counted only once in this necessary test.
 
@@ -56,7 +50,7 @@ For example, [row 13 of the eighteen rank-15 types](data/rank15-examples.txt#L13
 
 ## Verification
 
-[verify.py](verify.py) independently recomputes the final survivor lists from all supplied inputs. It places the objects in components one at a time, enumerates witness subsets directly, and accumulates attainable pairs of weighted energy and trace one dimension at a time. It also searches symmetric supports by choosing whole minimal witness sets. It compares the full rank-15 result with all 291 rows of the [supplied list](data/rank15-survivors.txt). It also checks the individual algorithms on small inputs, compares the original single-prime survivors with the digest of the published list, and tests the untwisted centers for `S3`, `A4`, `A5`, and the nonabelian group of order 21.
+[verify.py](verify.py) independently recomputes the final survivor lists from all supplied inputs. It places the objects in components one at a time, enumerates witness subsets directly, and accumulates attainable pairs of weighted energy and trace one dimension at a time. It also searches symmetric supports by choosing whole minimal witness sets. It checks the [manuscript list](data/rank15-manuscript-survivors.txt) and the list from the optional calculation below row by row. It also checks the individual algorithms on small inputs, compares the original single-prime survivors with the digest of the published list, and tests the untwisted centers for `S3`, `A4`, `A5`, and the nonabelian group of order 21.
 
 The [verifier](verify.py) also checks the paper’s rank-14 hand example, column and prime certificates for all 32 rank-14 exclusions, and the three dimension and prime choices for the [residual odd rank-25 types](data/rank25-odd.txt). On the [initial list of 91 odd rank-25 types](data/rank25-odd-91.txt), it checks the single-prime obstruction in 88 rows. In the remaining rows 8, 26 and 37, the largest multiplicity is eight and the dimension is divisible by 23, 19 and 37, respectively. Each prime exceeds twice the largest multiplicity plus one, contrary to [Alekseyev–Bruns–Palcoux–Petrov, Theorem 8.5](https://arxiv.org/abs/2302.01613). Theorem 1.1 gives a separate proof for these three rows using duality.
 
@@ -75,6 +69,13 @@ For each remaining non-unit simple $Y$, write $y=\mathrm{FPdim}(Y)$ and $z_Y=s_{
 | 8 | 36,225 | 289 | 78 | 6,084 | 6,080 |
 | 26 | 55,575 | 329 | 101 | 10,201 | 8,288 |
 | 37 | 2,594,625 | 17 | 7 | 49 | 16 |
+
+## Optional rank-15 refinement
+
+Running `python3 reproduce.py` without `--manuscript` applies two further checks. They exclude four rows of the full census and leave [291 types](data/rank15-survivors.txt), including 41 non-perfect and 250 perfect types. The option `--write-survivors remaining.txt` exports this list.
+
+- **Graded components.** If the image of the invertibles in the grading group has order $h$, its cosets consist of $h$ components of the same type. In a quotient of odd order, every nonidentity coset and its inverse are distinct and have the same component type. With three invertibles the two non-neutral components must have the same type, so every dimension of odd multiplicity must occur in the neutral component. In census row 17, the unique simple of dimension 6 alone fills its dimension $36$, leaving no room for the unit. In row 18, the required dimensions $1,2,3,4,6$ contribute $66>48$. [Census rows 17 and 18](data/rank15.txt#L17-L18)
+- **Orbits of invertibles.** Tensoring by an invertible preserves column support. If $k$ invertibles belong to the neutral component, the stabilizer of a simple of dimension $x$ has order dividing both $k$ and $x^2$. Thus the multiplicity of $x$ in each component is divisible by $k/\gcd(k,x^2)$, and a supported witness of that dimension contributes at least $g/\gcd(k,x^2)$ entries. In census row 9, the four adjoint dimension-three simples form one orbit. By (1.2) all four must meet the same dimension-four column. Its four contributions of $12^2$ already exhaust the global dimension. In row 10, a dimension-three simple must have orbit size four, but the type contains only two such simples. [Census rows 9 and 10](data/rank15.txt#L9-L10) · [Dong–Natale–Vendramin, Lemma 2.2](https://doi.org/10.1142/S0219498815500115)
 
 ## Data sources
 

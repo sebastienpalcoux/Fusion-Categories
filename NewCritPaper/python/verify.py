@@ -478,16 +478,15 @@ def reference_orbit_columns(parts, g, total):
     return True
 
 
-def reference_passes(row):
+def reference_passes(row, use_orbit_refinements=True):
     g = row.count(1)
     sizes = Counter(row)
     del sizes[1]
     total = sum(y*y for y in row)
     for parts in reference_gradings(row):
-        if not reference_grading_types(parts, g):
-            continue
-        if g > 1 and not reference_orbit_columns(parts, g, total):
-            continue
+        if use_orbit_refinements and g > 1:
+            if not reference_grading_types(parts, g) or not reference_orbit_columns(parts, g, total):
+                continue
         neutral = sorted(set(parts[0]) - {1}, reverse=True)
         if (all(reference_column(x, sizes, g, total, "gcd")
                 and reference_blocks(x, sizes, g, total, len(row)) for x in neutral)
@@ -509,6 +508,16 @@ def check_full_lists():
         rows = read_types(data / name)
         kept = sorted(row for row in rows if reference_passes(row))
         check(kept, sorted(expected), f"independent final list from {name}")
+        if name == "rank15.txt":
+            # Both tests coincide on perfect types. Recompute the manuscript test
+            # for every non-perfect input, allowing the broader set of gradings.
+            manuscript = sorted([row for row in kept if row.count(1) == 1] + [
+                row for row in rows if row.count(1) > 1 and reference_passes(row, use_orbit_refinements=False)
+            ])
+            check(manuscript, read_types(data / "rank15-manuscript-survivors.txt"),
+                  "independent rank-15 manuscript list")
+            check(set(manuscript) - set(kept), {rows[i-1] for i in (9, 10, 17, 18)},
+                  "four additional types excluded by the optional refinements")
 
 
 def check_symmetric_support():
@@ -544,7 +553,7 @@ def check_centers():
         "C7:C3": (1,)*3 + (3,)*16 + (7,)*6,
     }
     for group, row in centers.items():
-        for mode in ("single", "cover", "gcd", "blocks", "symmetric", "combined"):
+        for mode in ("single", "cover", "gcd", "blocks", "symmetric", "manuscript", "combined"):
             check(passes(row, mode), True, (group, mode))
 
 
@@ -562,5 +571,5 @@ if __name__ == "__main__":
     check_full_lists()
     check_centers()
     print("All five input digests and the rank-14 and odd rank-25 certificates agree.")
-    print("Independent full-list checks agree for ranks 14 and 15 and odd rank 25.")
+    print("Independent checks agree for ranks 14 and odd rank 25, and for both rank-15 lists (295 and 291).")
     print("Column, block, and symmetry tests, grading partitions, the published list and four group centers agree.")
