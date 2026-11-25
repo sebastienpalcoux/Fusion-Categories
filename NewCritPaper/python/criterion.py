@@ -67,6 +67,50 @@ def grading_partitions(dimensions, number_of_parts):
         ))
 
 
+def grading_types_compatible(partition):
+    """Test translation by invertibles and duality on the component types."""
+    neutral = partition[0]
+    multiplicities = Counter(partition)
+    image_order = sum(1 for part in partition if 1 in part)
+    if multiplicities[neutral] != image_order:
+        return False
+    # Translation by the image of the invertibles acts freely on grades.
+    # Each of its cosets therefore consists of components of a single type.
+    if any(count % image_order for count in multiplicities.values()):
+        return False
+    quotient_order = len(partition) // image_order
+    if quotient_order % 2:
+        # In an odd-order quotient every nonidentity coset has a distinct
+        # inverse. Duality identifies their component types.
+        return all((count // image_order) % 2 == 0
+                   for part, count in multiplicities.items() if part != neutral)
+    return True
+
+
+def orbit_columns_fit(partition, sizes, invertibles, total):
+    """Test pointed-orbit multiplicities and their costs in adjoint columns."""
+    kernel = partition[0].count(1)
+    orbit_size = {x: invertibles // gcd(kernel, x*x) for x in sizes}
+    for part in partition:
+        for x, count in Counter(part).items():
+            if x > 1 and count % (kernel // gcd(kernel, x*x)):
+                return False
+    # A nonzero entry brings the full orbit in each index into the support.
+    # Each orbit length is a multiple of orbit_size[x]. We use only
+    # this lower bound, without reconstructing the orbits themselves.
+    for x in set(partition[0]) - {1}:
+        budget = total - invertibles*x*x
+        options = []
+        for y in sizes:
+            weight = lcm(x, y)**2
+            if orbit_size[x]*weight <= total - invertibles*y*y:
+                options.append((y*y // gcd(x,y), orbit_size[y]*weight))
+        if not support_within_budget(options, budget, 0, gcd,
+                                     lambda common: common > 0 and invertibles % common == 0):
+            return False
+    return True
+
+
 def column_passes(x, noninvertible, invertibles, total, test):
     """Apply one of the three bounds to a hypothetical adjoint column x."""
     if test not in ("single", "cover", "gcd"):
@@ -121,8 +165,20 @@ def support_within_budget(options, budget, start, join, accepts):
 
 def symmetric_support_passes(neutral, dimensions, invertibles, total):
     """Test (1.1)–(1.2) for one common, symmetric support of all columns."""
-    dims = tuple(x for x in dimensions if x > 1)
     neutral_counts = Counter(neutral)
+    dims = tuple(x for x in dimensions if x > 1)
+    copies = 1
+    if total % 2:
+        # Only the unit is self-dual in odd dimension. The neutral component
+        # is closed under duals, and columns have the same support at Y and Y*.
+        counts = Counter(dims)
+        if (invertibles % 2 == 0 or neutral_counts[1] % 2 == 0
+                or any(n % 2 for n in counts.values())
+                or any(n % 2 for x, n in neutral_counts.items() if x > 1)):
+            return False
+        copies = 2
+        dims = tuple(x for x, n in counts.items() for _ in range(n // 2))
+        neutral_counts = {x: neutral_counts[x] // 2 for x in counts}
     adjoint = []
     for i, x in enumerate(dims):
         if neutral_counts[x]:
@@ -131,7 +187,7 @@ def symmetric_support_passes(neutral, dimensions, invertibles, total):
     adjoint.sort(key=dims.__getitem__, reverse=True)
     adjoint_ids = set(adjoint)
 
-    weights = [[lcm(x, y)**2 for y in dims] for x in dims]
+    weights = [[copies * lcm(x, y)**2 for y in dims] for x in dims]
     coefficients = [[y*y // gcd(x, y) for y in dims] for x in dims]
     budget = tuple(total - invertibles*x*x for x in dims)
     if min(budget, default=0) < 0:
@@ -161,7 +217,7 @@ def symmetric_support_passes(neutral, dimensions, invertibles, total):
 
     @lru_cache(maxsize=8192)
     def column_can_finish(x, sizes, slack, common):
-        options = [(y*y // gcd(x,y), lcm(x,y)**2) for y in sizes]
+        options = [(y*y // gcd(x,y), copies * lcm(x,y)**2) for y in sizes]
         return support_within_budget(options, slack, common, gcd, gcd_fits)
 
     @lru_cache(maxsize=8192)
@@ -251,6 +307,9 @@ def passes(dimensions, test="combined"):
         # obtained from the neutral block by tensoring with that object.
         # Thus its dimension multiset is the neutral type. The first
         # block contains 1 since the expanded blocks are sorted.
+        if use_symmetry and (not grading_types_compatible(partition)
+                             or not orbit_columns_fit(partition, noninvertible, invertibles, total)):
+            continue
         if passes_neutral(partition[0]):
             return True
     return False

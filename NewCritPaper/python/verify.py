@@ -80,6 +80,29 @@ def check_gradings():
     check(passes(row, "gcd"), False, "gcd example")
 
 
+def check_component_types():
+    rows = read_types(HERE / "data" / "rank15.txt")
+    for index in (17, 18):
+        row = rows[index - 1]
+        candidates = reference_gradings(row)
+        check(len(candidates), 2, ("rank 15", index, "equal-weight partitions"))
+        check(any(parts[1] == parts[2] for parts in candidates), False,
+              ("rank 15", index, "no dual nonneutral components"))
+        check(passes(row, "blocks"), True, ("rank 15", index, "earlier block test"))
+        check(passes(row, "symmetric"), False, ("rank 15", index, "grading obstruction"))
+    row = rows[8]
+    check((row.count(1), row.count(3), row.count(4), sum(x*x for x in row)),
+          (4, 4, 2, 576), "rank-15 row 9: four-element orbit")
+    check({y for y in row if y > 1 and y % 3}, {4},
+          "rank-15 row 9: forced neighbor")
+    check(4*lcm(3, 4)**2, sum(x*x for x in row), "rank-15 row 9: exhausted norm")
+    row = rows[9]
+    check((row.count(1), row.count(3), gcd(3**2, row.count(1))), (4, 2, 1),
+          "rank-15 row 10: impossible orbit size")
+    check(sum(sum(x*x for x in row) % 2 for row in rows), 0,
+          "all rank-15 inputs have even dimension")
+
+
 def check_block_search():
     # Enumerate the possible traces first. For each trace, determine the
     # possible energies directly and enumerate all tuples across the blocks.
@@ -132,6 +155,25 @@ def check_source_lists():
 
 def check_rank14_certificates():
     rows = read_types(HERE / "data" / "rank14.txt")
+    # Give the actual symmetric support used in the guide for rows 1 and 2.
+    for index, row in enumerate(rows[:2], 1):
+        d = row[2:]
+        check((row[:2], d[0], d.count(3), d[-2:]), ((1, 1), 2, 2, (max(d),)*2),
+              ("rank 14", index, "support witness labels"))
+        total = sum(x*x for x in row)
+        neutral = range(len(d)-2)
+        entries = {(0, j) for j in neutral} | {(j, 0) for j in neutral}
+        entries |= {(i, j) for i, x in enumerate(d) for j, y in enumerate(d) if x == y == 3}
+        entries |= {(j, j) for j in (len(d)-2, len(d)-1)}
+        check(sum(x*x for x in row[:-2]), total // 2,
+              ("rank 14", index, "support witness neutral component"))
+        for i, x in enumerate(d):
+            neighbors = [d[j] for j in range(len(d)) if (i, j) in entries]
+            check(2*x*x + sum(lcm(x,y)**2 for y in neighbors) <= total, True,
+                  ("rank 14", index, "witness norm", i))
+            if i in neutral:
+                check(2 % gcd(*(y*y // gcd(x,y) for y in neighbors)), 0,
+                      ("rank 14", index, "witness gcd", i))
     # In the worked example the neutral component contains every dimension
     # smaller than 180 and one of the three simples of dimension 180.
     example = rows[2]
@@ -216,6 +258,13 @@ def check_rank25_certificates():
         excluded = any(gcd(x, *(y for y in dims if lcm(x, y) < root)) > 1 for x in dims)
         check(excluded, i not in exceptions, ("odd rank 25", i, "single prime"))
         if i in exceptions:
+            # A unique dual pair coprime to p forces an everywhere nonzero
+            # column, contradicting (1.1). See the repository guide.
+            p, y = {8: (3, 115), 26: (3, 65), 37: (11, 51)}[i]
+            check([d for d in row if d > 1 and d % p], [y, y],
+                  ("odd rank 25", i, "unique prime-free dual pair"))
+            check(y*y + sum(lcm(x, y)**2 for x in row if x > 1) > total,
+                  True, ("odd rank 25", i, "full-support column exceeds norm"))
             prime = primes[i]
             largest_multiplicity = max(Counter(row).values())
             check(largest_multiplicity, 8, ("odd rank 25", i, "maximum multiplicity"))
@@ -293,16 +342,27 @@ def reference_blocks(x, sizes, g, total, rank):
 
 def reference_symmetric(neutral, row, g, total):
     """Choose a whole minimal witness set at a time, keeping labeled edges."""
-    dims = tuple(y for y in row if y > 1)
+    dims = tuple(sorted(y for y in row if y > 1))
+    neutral_slots = [y for y in sorted(neutral) if y > 1]
+    copies = 1
+    if total % 2:
+        # Consecutive labels of each dimension form dual pairs. Their
+        # multiplicities in the neutral part must separately be even.
+        if (row.count(1) % 2 != 1 or neutral.count(1) % 2 != 1
+                or dims[::2] != dims[1::2] or neutral_slots[::2] != neutral_slots[1::2]):
+            return False
+        copies = 2
+        dims = dims[::2]
+        neutral_slots = neutral_slots[::2]
     labels = defaultdict(list)
     for i, y in enumerate(dims):
         labels[y].append(i)
     adjoint = []
     for y, slots in labels.items():
-        adjoint.extend(slots[:neutral.count(y)])
+        adjoint.extend(slots[:neutral_slots.count(y)])
     adjoint.sort(key=dims.__getitem__, reverse=True)
     is_adjoint = set(adjoint)
-    cost = {(x, y): lcm(x, y)**2 for x in labels for y in labels}
+    cost = {(x, y): copies * lcm(x, y)**2 for x in labels for y in labels}
     budget = {x: total - g*x*x for x in labels}
     if any(b < 0 for b in budget.values()):
         return False
@@ -375,12 +435,59 @@ def reference_symmetric(neutral, row, g, total):
     return search((frozenset(),) * len(dims), tuple(budget[x] for x in dims))
 
 
+def reference_grading_types(parts, g):
+    # The kernel of the map from invertibles to grades consists exactly
+    # of the invertibles in the neutral component.
+    kernel = parts[0].count(1)
+    image, remainder = divmod(g, kernel)
+    if remainder or sum(part == parts[0] for part in parts) != image:
+        return False
+    counts = Counter(parts)
+    del counts[parts[0]]
+    # Nonneutral cosets occur in dual pairs when the quotient is odd.
+    multiple = image * (2 if (g // image) % 2 else 1)
+    return all(n % multiple == 0 for n in counts.values())
+
+
+def reference_orbit_columns(parts, g, total):
+    """Count kernel orbits and enumerate affordable dimension subsets."""
+    k = parts[0].count(1)
+    sizes = {x for part in parts for x in part if x > 1}
+    # The largest possible stabilizer order divides both k and x squared.
+    max_stabilizer = {x: gcd(k, x*x) for x in sizes}
+    for part in parts:
+        for x, n in Counter(part).items():
+            if x > 1 and n*max_stabilizer[x] % k:
+                return False
+    for x in set(parts[0]) - {1}:
+        candidates = [y for y in sizes
+                      if g*lcm(x,y)**2 <= (total-g*y*y)*max_stabilizer[x]]
+        feasible = False
+        for n in range(1, len(candidates)+1):
+            for subset in combinations(candidates, n):
+                if g % gcd(*(y*y // gcd(x,y) for y in subset)):
+                    continue
+                cost = sum((g // max_stabilizer[y])*lcm(x,y)**2 for y in subset)
+                if cost <= total-g*x*x:
+                    feasible = True
+                    break
+            if feasible:
+                break
+        if not feasible:
+            return False
+    return True
+
+
 def reference_passes(row):
     g = row.count(1)
     sizes = Counter(row)
     del sizes[1]
     total = sum(y*y for y in row)
     for parts in reference_gradings(row):
+        if not reference_grading_types(parts, g):
+            continue
+        if g > 1 and not reference_orbit_columns(parts, g, total):
+            continue
         neutral = sorted(set(parts[0]) - {1}, reverse=True)
         if (all(reference_column(x, sizes, g, total, "gcd")
                 and reference_blocks(x, sizes, g, total, len(row)) for x in neutral)
@@ -409,7 +516,7 @@ def check_symmetric_support():
     for filename, survivors in (
         ("rank14.txt", [1, 2]),
         ("rank25-odd.txt", []),
-        ("rank25-odd-91.txt", [8, 26, 37]),
+        ("rank25-odd-91.txt", []),
         ("rank15-examples.txt", [1, 2, 4, 7, 8, 9, 11, 12, 13, 14, 16]),
     ):
         rows = read_types(data / filename)
@@ -448,6 +555,7 @@ if __name__ == "__main__":
     check_rank25_certificates()
     check_columns()
     check_gradings()
+    check_component_types()
     check_block_search()
     check_published_list()
     check_symmetric_support()

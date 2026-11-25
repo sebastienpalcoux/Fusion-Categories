@@ -6,7 +6,11 @@ from criterion import passes, read_types
 
 
 HERE = Path(__file__).resolve().parent
-MODES = ("single", "cover", "gcd", "blocks", "combined")
+MODES = ("single", "cover", "gcd", "blocks", "symmetric", "combined")
+PREREQUISITES = {
+    "single": (), "cover": ("single",), "gcd": ("cover",), "blocks": ("gcd",),
+    "symmetric": ("gcd",), "combined": ("blocks", "symmetric"),
+}
 
 
 def write_types(types, path):
@@ -47,8 +51,9 @@ def census(show_stages=False):
         "odd rank 25, initial": earlier,
     }
     expected = [
-        (34, 2, 2, 2, 2, 2), (399, 140, 132, 110, 47, 45), (8628, 2341, 1861, 1861, 311, 250),
-        (18, 18, 14, 14, 3, 3), (3, 0, 0, 0, 0, 0), (91, 3, 3, 3, 0, 0),
+        (34, 2, 2, 2, 2, 2, 2), (399, 140, 132, 110, 47, 74, 41),
+        (8628, 2341, 1861, 1861, 311, 1077, 250), (18, 18, 14, 14, 3, 11, 3),
+        (3, 0, 0, 0, 0, 0, 0), (91, 3, 3, 3, 0, 0, 0),
     ]
     if show_stages:
         print(f"{'dataset':24} {'input':>6}" + "".join(f"{mode:>10}" for mode in MODES))
@@ -56,12 +61,13 @@ def census(show_stages=False):
         print(f"{'dataset':24} {'input':>9} {'excluded':>9} {'remaining':>9}")
     results = {}
     for (name, types), counts in zip(datasets.items(), expected):
-        previous = types
+        by_mode = {}
         actual = [len(types)]
         for mode in MODES:
             kept = [t for t in types if passes(t, mode)]
-            if not set(kept).issubset(previous):
-                raise AssertionError(f"{name}: survivor sets are not nested")
+            for prerequisite in PREREQUISITES[mode]:
+                if not set(kept).issubset(by_mode[prerequisite]):
+                    raise AssertionError(f"{name}: {mode} passes a row excluded by {prerequisite}")
             if name == "rank 15, examples" and mode in ("cover", "gcd"):
                 removed = set(types) - set(kept)
                 if removed != {examples[i-1] for i in (3, 5, 6, 10)}:
@@ -69,15 +75,16 @@ def census(show_stages=False):
             if name == "odd rank 25, initial" and mode in ("single", "cover", "gcd"):
                 if kept != [earlier[i-1] for i in (8, 26, 37)]:
                     raise AssertionError("unexpected rank-25 support-test survivors")
-            previous = kept
+            by_mode[mode] = kept
             actual.append(len(kept))
+        final = by_mode["combined"]
         if show_stages:
             print(f"{name:24} {actual[0]:6}" + "".join(f"{count:10}" for count in actual[1:]))
         else:
-            print(f"{name:24} {len(types):9} {len(types) - len(previous):9} {len(previous):9}")
+            print(f"{name:24} {len(types):9} {len(types) - len(final):9} {len(final):9}")
         if tuple(actual) != counts:
             raise AssertionError(f"{name}: expected {counts}, obtained {actual}")
-        results[name] = previous
+        results[name] = final
     if results["rank 14, residual"] != rank14[:2]:
         raise AssertionError("unexpected rank-14 survivors")
     if results["rank 15, examples"] != [examples[i-1] for i in (1, 2, 4)]:
