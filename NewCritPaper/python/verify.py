@@ -170,6 +170,19 @@ def check_rank14_certificates():
     check(sorted(covered), list(range(3, len(rows) + 1)), "rank-14 certificate coverage")
 
 
+def check_rank15_block_example():
+    row = read_types(HERE / "data" / "rank15-examples.txt")[12]
+    x, y = 3780, 70
+    total = sum(d*d for d in row)
+    check((row.count(1), row.count(y), max(row), x % y, total),
+          (1, 2, x, 0, 4*x*x), "rank-15 row 13: type and normalized norm")
+    check(all(d % 9 == 0 for d in row if d not in (1, y)),
+          True, "rank-15 row 13: other blocks vanish modulo nine")
+    bound = isqrt(row.count(y) * (total // (x*x) - 1))
+    check(any((y*b + 1) % 9 == 0 for b in range(-bound, bound + 1)),
+          False, "rank-15 row 13: no integer block sum satisfies orthogonality")
+
+
 def check_rank25_certificates():
     residual = read_types(HERE / "data" / "rank25-odd.txt")
     choices = [(4095, 13, {75, 175}), (2925, 5, {91}), (135, 3, {385})]
@@ -321,6 +334,7 @@ def check_centers():
 if __name__ == "__main__":
     check_source_lists()
     check_rank14_certificates()
+    check_rank15_block_example()
     check_rank25_certificates()
     check_columns()
     check_gradings()

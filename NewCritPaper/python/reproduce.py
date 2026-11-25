@@ -28,7 +28,7 @@ def check_dataset(filename, expected_rank, odd_perfect=False):
     return types
 
 
-def census():
+def census(show_stages=False):
     rank14 = check_dataset("rank14.txt", 14)
     rank15 = check_dataset("rank15.txt", 15)
     examples = check_dataset("rank15-examples.txt", 15)
@@ -50,7 +50,10 @@ def census():
         (34, 2, 2, 2, 2), (399, 140, 132, 110, 47), (8628, 2341, 1861, 1861, 311),
         (18, 18, 14, 14, 3), (3, 0, 0, 0, 0), (91, 3, 3, 3, 0),
     ]
-    print(f"{'dataset':24} {'input':>6} {'single':>6} {'cover':>6} {'gcd':>6} {'blocks':>6}")
+    if show_stages:
+        print(f"{'dataset':24} {'input':>6} {'single':>6} {'cover':>6} {'gcd':>6} {'blocks':>6}")
+    else:
+        print(f"{'dataset':24} {'input':>9} {'excluded':>9} {'remaining':>9}")
     results = {}
     for (name, types), counts in zip(datasets.items(), expected):
         previous = types
@@ -68,7 +71,10 @@ def census():
                     raise AssertionError("unexpected rank-25 support-test survivors")
             previous = kept
             actual.append(len(kept))
-        print(f"{name:24}" + "".join(f"{a:7}" for a in actual))
+        if show_stages:
+            print(f"{name:24}" + "".join(f"{a:7}" for a in actual))
+        else:
+            print(f"{name:24} {len(types):9} {len(types) - len(previous):9} {len(previous):9}")
         if tuple(actual) != counts:
             raise AssertionError(f"{name}: expected {counts}, obtained {actual}")
         results[name] = previous
@@ -83,8 +89,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--write-survivors", metavar="PATH",
                         help="export all rank-15 types passing the block test")
+    parser.add_argument("--stages", action="store_true",
+                        help="show counts for each arithmetic test")
     args = parser.parse_args()
-    survivors = census()
+    survivors = census(show_stages=args.stages)
     if survivors != read_types(HERE / "data" / "rank15-survivors.txt"):
         raise AssertionError("rank-15 result differs from the supplied survivor list")
     if args.write_survivors:

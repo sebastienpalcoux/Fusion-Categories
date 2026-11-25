@@ -9,37 +9,36 @@ python3 reproduce.py
 python3 verify.py
 ```
 
-To export the final rank-15 list to another file, run `python3 reproduce.py --write-survivors remaining.txt`. The program compares the entire computed list with the supplied [rank15-survivors.txt](data/rank15-survivors.txt).
+The [rank-15 census](data/rank15.txt) gives the following counts.
 
-| Candidate list | Input | Single prime | Simultaneous primes | GCD | Dimension blocks |
-|---|---:|---:|---:|---:|---:|
-| Rank 14, residual | 34 | 2 | 2 | 2 | 2 |
-| Rank 15, non-perfect | 399 | 140 | 132 | 110 | 47 |
-| Rank 15, perfect | 8,628 | 2,341 | 1,861 | 1,861 | 311 |
-| Rank 15, all non-pointed candidates | 9,027 | 2,481 | 1,993 | 1,971 | 358 |
-| Rank 15, examples from the first version | 18 | 18 | 14 | 14 | 3 |
-| Odd rank 25, residual | 3 | 0 | 0 | 0 | 0 |
-| Odd rank 25, earlier list | 91 | 3 | 3 | 3 | 0 |
+| Candidate types | Input | Excluded | Remaining |
+|---|---:|---:|---:|
+| Non-perfect | 399 | 352 | 47 |
+| Perfect | 8,628 | 8,317 | 311 |
+| Total | 9,027 | 8,669 | 358 |
+
+To export the 358 types, run [`python3 reproduce.py --write-survivors remaining.txt`](reproduce.py). The program compares every computed row with the [published list](data/rank15-survivors.txt). For intermediate arithmetic checks on all datasets, use [`python3 reproduce.py --stages`](reproduce.py).
 
 ## Algorithm
 
 Given a type, `passes(dimensions, test="blocks")` in [criterion.py](criterion.py) returns whether it survives the selected necessary condition. Let `D` be the sum of squared dimensions and `g` the number of entries equal to 1. The program enumerates all unordered partitions into `g` parts of square sum `D/g`. These include every universal grading and can also include partitions which no category realizes. In a realizable partition, each component containing an invertible is a translate of the neutral component and has the same type. The lexicographically first part contains a 1, so it has the neutral type in any actual grading. The candidate survives if some partition passes the column test for every noninvertible dimension `x` of its first part.
 
-The two parts of Theorem 1.1 give the tests below. In (1.1), each non-invertible simple of dimension `y` in the support of the column contributes `lcm(x,y)**2` to a sum bounded by `D - g*x*x`. By (1.2), the gcd of `y*y // gcd(x,y)` over the non-invertible support divides `g`. Since each of these integers is divisible by `y`, each prime coprime to `g` needs a witness dimension coprime to it. In the perfect case (`g = 1`), (1.2) is equivalent to the non-invertible dimensions in the support having gcd one.
+For each possible adjoint dimension `x`, (1.1) of Theorem 1.1 allows a total of `D - g*x*x` for the non-invertible terms in the column. Every supported simple of dimension `y` contributes at least `lcm(x,y)**2`. By (1.2), the gcd of `y*y // gcd(x,y)` over this support divides `g`. Each coefficient is a multiple of `y` and divides `y*y`. In a perfect type (`g = 1`), this is exactly (1.3): the supported non-unit dimensions have gcd one. The [support test](criterion.py) searches for a nonempty subset of dimensions satisfying the bound and divisibility, retaining the least cost for each gcd. Repeated dimensions do not affect a gcd and are counted only once in this necessary test.
 
-- `single` checks separately for each prime dividing `x` but not `g` that at least one affordable `y` is prime to it.
-- `cover` requires one subset of dimensions within budget that covers all these primes. Each selected dimension can cover several primes.
-- `gcd` requires a nonempty subset within budget for which the gcd of the integers `y*y // gcd(x,y)` divides `g`.
+## Equal-dimension bounds
 
-For the cover and gcd tests the program retains the cheapest subset producing each prime mask or gcd. Each dimension is processed once because repetitions have no effect on either state and have positive cost.
+The census imposes the support conditions on each non-invertible adjoint dimension $x$. When $D/x^2$ is at most the rank, it also uses the two column identities grouped by simple dimension. For the $n$ entries in a block of dimension $y$, write $z_i=s_{X,Y_i}/\mathrm{lcm}(x,y)$, including zero entries. Put $b=\sum_i z_i$ and $e=\sum_i |z_i|^2$. Galois conjugation permutes this list: it permutes characters and preserves simple dimensions because their formal codegrees $D/y^2$ are rational. Since each $z_i$ is a cyclotomic integer, both $b$ and $e$ are rational integers.
 
-The final `blocks` test imposes the gcd condition for every adjoint dimension and also checks the signed trace and exact norm equations when `D/x² ≤ rank`. For each dimension `y` of multiplicity `n`, let `b` and `e` be its integral trace and energy. Write `b = nq + r` with `0 ≤ r < n`. The program requires
+The [block test](blocks.py) uses the following necessary conditions for $(e,b)$.
 
-- `e ≥ (n-r)q² + r(q+1)²`
-- `e = b²` when `n = 1`
-- `|b| = 1` when `e = 1`.
+- A nonzero cyclotomic integer has Galois mean square at least one by the arithmetic–geometric mean inequality applied to its norm. Thus each nonzero orbit in a block contributes at least its size to $e$. If $e=1$, there is exactly one nonzero entry. It is Galois-fixed, hence a rational integer, and equals $1$ or $-1$. Consequently $|b|=1$. For a singleton block the entry is always a rational integer, so $e=b^2$.
+- Write $b=nq+r$, with $0\le r<n$. None of the cyclotomic integers $2z_i-2q-1$ vanishes, since the half-integer $q+1/2$ is not an algebraic integer. The transformed list is still Galois-stable, so $\sum_i|2z_i-2q-1|^2\ge n$. Expansion gives $e\ge(2q+1)b-nq(q+1)=(n-r)q^2+r(q+1)^2$.
 
-[blocks.py](blocks.py) looks for one pair per noninvertible dimension, with total weighted trace `−g` and total weighted energy `D/x² − g`. The weights are respectively `y²/gcd(x,y)` and `(lcm(x,y)/x)²`. The cutoff is equivalent to choosing `x` at least as large as the root-mean-square simple dimension. Passing the computation is a necessary condition for categorification.
+The code looks for one such pair per non-invertible dimension. The weighted sum of the $b$'s must equal $-g$, with weights $y^2/\gcd(x,y)$. The weighted sum of the $e$'s must equal $D/x^2-g$, with weights $(\mathrm{lcm}(x,y)/x)^2$. The cutoff restricts this extra computation to $x$ at least as large as the root-mean-square simple dimension.
+
+For example, [row 13 of the eighteen rank-15 types](data/rank15-examples.txt#L13) is perfect. For $x=3780$, the normalized column norm leaves $D/x^2-1=3$ after the unit is counted. There are two simples of dimension $70$, and $70$ divides $x$. Their block sum $b$ is an integer and Cauchy–Schwarz gives $b^2\le 2\cdot 3$. All other non-unit dimensions are divisible by $9$. Orthogonality with the unit column therefore gives $70b\equiv-1\pmod 9$, or $b\equiv-4\pmod 9$, which is impossible. The [verifier](verify.py) checks the arithmetic for this row.
+
+## Verification
 
 [verify.py](verify.py) independently recomputes the final survivor lists from all supplied inputs. It places the objects in components one at a time, enumerates witness subsets directly, and accumulates attainable pairs of weighted energy and trace one dimension at a time. It compares the full rank-15 result with all 358 rows of the [supplied list](data/rank15-survivors.txt). It also checks the individual algorithms on small inputs, compares the original single-prime survivors with the digest of the published list, and tests the untwisted centers for `S3`, `A4`, `A5`, and the nonabelian group of order 21.
 
@@ -49,7 +48,7 @@ The [verifier](verify.py) also checks the paper’s rank-14 hand example, column
 
 Rows 8, 26 and 37 of the initial list each have one invertible and total dimension $9x^2$, where $x$ is the largest simple dimension. Fix a simple $X$ of dimension $x$. The unit uses one of the nine units in the normalized column norm. If a dimension $y$ fails to divide $x$, the odd integer $y/\gcd(x,y)$ is at least three. A nonzero entry of this dimension would use at least nine units in the averaged norm, so all such entries vanish.
 
-For each remaining non-unit simple $Y$, write $y=\mathrm{FPdim}(Y)$ and $z_Y=s_{X,Y}/x$. Then $\sum_Y |z_Y|^2=8$ and $\sum_Y y z_Y=-1$. For each dimension $y$, the sum of the $z_Y$ with that dimension is an integer by §3.1 of the paper. Choose integers $m,a$ with $0<2a<m$ and take the centered residue $r_y$ of $ay$ modulo $m$. It follows that $\sum_Y r_y z_Y$ is an integer congruent to $-a$ modulo $m$. Its absolute value is at least $a$. Cauchy–Schwarz therefore requires $a^2\leq 8\sum_Y r_y^2$, counting repeated dimensions separately. Each row violates the inequality.
+For each remaining non-unit simple $Y$, write $y=\mathrm{FPdim}(Y)$ and $z_Y=s_{X,Y}/x$. Then $\sum_Y |z_Y|^2=8$ and $\sum_Y y z_Y=-1$. For each dimension $y$, the sum of the $z_Y$ with that dimension is an integer by Section 3 of the paper. Choose integers $m,a$ with $0<2a<m$ and take the centered residue $r_y$ of $ay$ modulo $m$. It follows that $\sum_Y r_y z_Y$ is an integer congruent to $-a$ modulo $m$. Its absolute value is at least $a$. Cauchy–Schwarz therefore requires $a^2\leq 8\sum_Y r_y^2$, counting repeated dimensions separately. Each row violates the inequality.
 
 | Row | $x$ | $m$ | $a$ | $a^2$ | $8\sum_Y r_y^2$ |
 |---:|---:|---:|---:|---:|---:|
