@@ -15,12 +15,16 @@ def write_types(types, path):
             stream.write(" ".join(map(str, row)) + "\n")
 
 
-def check_dataset(filename, expected_rank):
+def check_dataset(filename, expected_rank, odd_perfect=False):
     types = read_types(HERE / "data" / filename)
-    if len(set(types)) != len(types) or any(
-        len(row) != expected_rank or tuple(sorted(row)) != row for row in types
-    ):
-        raise ValueError(f"duplicate, unsorted or wrong-rank row in {filename}")
+    if len(set(types)) != len(types):
+        raise ValueError(f"duplicate row in {filename}")
+    for number, row in enumerate(types, 1):
+        if (len(row) != expected_rank or tuple(sorted(row)) != row
+                or row[0] != 1 or row[-1] == 1):
+            raise ValueError(f"{filename} row {number}: expected a sorted non-pointed type of rank {expected_rank}")
+        if odd_perfect and (row.count(1) != 1 or any(d % 2 == 0 for d in row)):
+            raise ValueError(f"{filename} row {number}: expected a perfect odd-dimensional type")
     return types
 
 
@@ -28,8 +32,12 @@ def census():
     rank14 = check_dataset("rank14.txt", 14)
     rank15 = check_dataset("rank15.txt", 15)
     examples = check_dataset("rank15-examples.txt", 15)
-    rank25 = check_dataset("rank25-odd.txt", 25)
-    earlier = check_dataset("rank25-odd-91.txt", 25)
+    rank25 = check_dataset("rank25-odd.txt", 25, odd_perfect=True)
+    earlier = check_dataset("rank25-odd-91.txt", 25, odd_perfect=True)
+    if not set(examples).issubset(rank15):
+        raise ValueError("rank-15 example missing from the input census")
+    if not set(rank25).issubset(earlier):
+        raise ValueError("residual odd rank-25 type missing from the initial list")
     datasets = {
         "rank 14, residual": rank14,
         "rank 15, non-perfect": [t for t in rank15 if t.count(1) > 1],

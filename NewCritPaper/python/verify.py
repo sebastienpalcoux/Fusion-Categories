@@ -1,7 +1,8 @@
-"""Cross-check the column algorithm and the census against independent data."""
+"""Cross-check the column tests and independently reconstruct the final census."""
+from collections import Counter
 from hashlib import sha256
 from itertools import combinations, combinations_with_replacement, product
-from math import gcd, lcm
+from math import gcd, isqrt, lcm
 
 from blocks import block_column_passes
 from criterion import column_passes, grading_partitions, passes, read_types
@@ -16,18 +17,21 @@ def check(actual, expected, message):
 def reference_column(x, sizes, g, total, test):
     """Enumerate every witness subset directly, without state compression."""
     budget = total - g * x * x
-    primes = {p for p in range(2, x + 1)
-              if x % p == 0 and g % p and all(p % k for k in range(2, p))}
-    if test == "single":
-        return all(any(y % p and lcm(x, y)**2 <= budget for y in sizes)
-                   for p in primes)
-    for length in range(len(sizes) + 1):
-        for subset in combinations(sizes, length):
-            if sum(lcm(x, y)**2 for y in subset) > budget:
+    if budget < 0:
+        return False
+    affordable = [(y, lcm(x, y)**2) for y in sizes if lcm(x, y)**2 <= budget]
+    if test in ("single", "cover"):
+        primes = {p for p in range(2, x + 1)
+                  if x % p == 0 and g % p and all(p % k for k in range(2, p))}
+        if test == "single":
+            return all(any(y % p for y, _ in affordable) for p in primes)
+    for length in range(len(affordable) + 1):
+        for subset in combinations(affordable, length):
+            if sum(cost for _, cost in subset) > budget:
                 continue
-            if test == "cover" and all(any(y % p for y in subset) for p in primes):
+            if test == "cover" and all(any(y % p for y, _ in subset) for p in primes):
                 return True
-            if test == "gcd" and subset and g % gcd(*(y*y // gcd(x, y) for y in subset)) == 0:
+            if test == "gcd" and subset and g % gcd(*(y*y // gcd(x, y) for y, _ in subset)) == 0:
                 return True
     return False
 
@@ -40,7 +44,7 @@ def check_columns():
             costs = {0}
             for y in sizes:
                 costs |= {subtotal + lcm(x, y)**2 for subtotal in costs}
-            budgets = {max(0, cost + offset) for cost in costs for offset in (-1, 0, 1)}
+            budgets = {cost + offset for cost in costs for offset in (-1, 0, 1)}
             for g in (1, 2, 4, 6):
                 for budget in budgets:
                     total = budget + g * x * x
@@ -106,15 +110,172 @@ def check_block_search():
                       expected, ("block", x, g, codegree))
 
 
+def row_digest(rows):
+    normalized = "".join(" ".join(map(str, row)) + "\n" for row in rows)
+    return sha256(normalized.encode("ascii")).hexdigest()
+
+
+def check_source_lists():
+    # Digests of the ordered, expanded tables in the archived data revision
+    # identified in README.md. White space is normalized by row_digest.
+    expected = {
+        "rank14.txt": "ff69d07733bfbe367eb553f391ef0e4d42feb188d9fd7f2902dd3207ff6a7567",
+        "rank15.txt": "932a209b9127d845653e7ab0876c1a48532451ec3ad051cc5c9db7caed3b70e5",
+        "rank15-examples.txt": "6882621a302b67956d86d4dff62aeb8fed33baede34a8f93821d2047e0213301",
+        "rank25-odd-91.txt": "27736f632d3b7d3e427231d505a0485e787056f04f9549430820c4ac668df1f5",
+        "rank25-odd.txt": "f8a5425cba6805a518ad31c680265b69652e717e4fc24b387002695701b9c7ee",
+    }
+    for filename, digest in expected.items():
+        check(row_digest(read_types(HERE / "data" / filename)), digest, filename)
+
+
+def check_rank14_certificates():
+    rows = read_types(HERE / "data" / "rank14.txt")
+    # The five lines give (q, p, row numbers) in the order of the paper.
+    groups = (
+        (2, 3, (3, 4, 6, 7)),
+        (2, 5, (5, 9, 11, 13, 15, 16, 19, 20, 21, 22, 23, 24, 27, 28, 30, 31, 34)),
+        (3, 7, (10, 12, 25, 26, 29, 32, 33)),
+        (5, 3, (8, 18)),
+        (7, 3, (14, 17)),
+    )
+    covered = []
+    for q, p, indices in groups:
+        for i in indices:
+            row = rows[i - 1]
+            largest = max(row)
+            root = 2 * largest
+            g = row.count(1)
+            check(sum(y*y for y in row), root*root, ("rank 14", i, "dimension"))
+            if g != 1:
+                # The part containing the unit must have one largest label
+                # and all the smaller labels.
+                check((g, row.count(largest)), (2, 3), ("rank 14", i, "grading"))
+            x, remainder = divmod(root, q)
+            check(remainder == 0 and x in row and x % p == 0 and g % p != 0,
+                  True, ("rank 14", i, "column and prime"))
+            check(all(lcm(x, y) == root for y in row if y > 1 and y % p),
+                  True, ("rank 14", i, "all witnesses exhaust the norm"))
+        covered.extend(indices)
+    check(sorted(covered), list(range(3, len(rows) + 1)), "rank-14 certificate coverage")
+
+
+def check_rank25_certificates():
+    rows = read_types(HERE / "data" / "rank25-odd-91.txt")
+    # (largest dimension, modulus, multiplier, weighted residue square sum)
+    exceptions = {
+        8: (36225, 289, 78, 760),
+        26: (55575, 329, 101, 1036),
+        37: (2594625, 17, 7, 2),
+    }
+    for i, row in enumerate(rows, 1):
+        dims = set(row) - {1}
+        total = sum(y*y for y in row)
+        root = isqrt(total)
+        check(root*root == total and row.count(1) == 1 and all(y % 2 for y in row),
+              True, ("odd rank 25", i, "dimension and perfection"))
+        check(all(root % y == 0 for y in dims), True, ("odd rank 25", i, "divisibility"))
+        # A common prime factor of x and every y with lcm(x,y) < root
+        # forces every prime-free witness to exhaust the norm.
+        excluded = any(gcd(x, *(y for y in dims if lcm(x, y) < root)) > 1 for x in dims)
+        check(excluded, i not in exceptions, ("odd rank 25", i, "single prime"))
+        if i in exceptions:
+            x, modulus, multiplier, expected = exceptions[i]
+            check((max(row), root), (x, 3*x), ("odd rank 25", i, "largest column"))
+            # The budget is eight. If y does not divide x, the odd norm
+            # weight (lcm(x,y)/x)^2 is at least nine.
+            residues = [(multiplier*y + modulus//2) % modulus - modulus//2
+                        for y in row if y > 1 and x % y == 0]
+            mass = sum(r*r for r in residues)
+            check(mass, expected, ("odd rank 25", i, "residue mass"))
+            check(0 < 2*multiplier < modulus and 8*mass < multiplier**2,
+                  True, ("odd rank 25", i, "strict Cauchy–Schwarz contradiction"))
+
+
 def check_published_list():
     rows = read_types(HERE / "data" / "rank15.txt")
     kept = sorted(row for row in rows if passes(row, "single"))
-    normalized = "".join(" ".join(map(str, row)) + "\n" for row in kept).encode("ascii")
     # SHA-256 of the sorted NP and P arrays in the cited RemainingTypes.txt,
     # expanded and written as space-separated decimal integers with Unix LF.
-    check(sha256(normalized).hexdigest(),
+    check(row_digest(kept),
           "0d72a296856820d1ce469f368bde19dab3a0adbeb2947e995ee423d31d5f5914",
           "published rank-15 list")
+
+
+def reference_gradings(row):
+    """Place individual objects in equal-weight components, largest first."""
+    g = row.count(1)
+    if g == 1:
+        return {(row,)}
+    target, remainder = divmod(sum(y*y for y in row), g)
+    if remainder:
+        return set()
+    partitions = {((),) * g}
+    for y in reversed(row):
+        updated = set()
+        for parts in partitions:
+            for i, part in enumerate(parts):
+                if i and part == parts[i-1]:
+                    continue
+                if y*y + sum(z*z for z in part) <= target:
+                    placed = parts[:i] + ((y,) + part,) + parts[i+1:]
+                    updated.add(tuple(sorted(placed)))
+        partitions = updated
+    return partitions
+
+
+def reference_blocks(x, sizes, g, total, rank):
+    """Multiply the feasible trace/energy sets for the dimension blocks."""
+    if total > rank * x*x:
+        return True
+    codegree, remainder = divmod(total, x*x)
+    if remainder or codegree < g:
+        return False
+    budget = codegree - g
+    totals = {(0, 0)}
+    for y, n in sizes.items():
+        weight = (y // gcd(x, y))**2
+        limit = budget // weight
+        choices = set()
+        # The least energy at trace b is at least |b|, since k² >= |k|
+        # for each of the n rational integers attaining that minimum.
+        for b in range(-limit, limit + 1):
+            q, r = divmod(b, n)
+            least = (n-r)*q*q + r*(q+1)**2
+            for e in range(least, limit + 1):
+                if (n == 1 and e != b*b) or (e == 1 and abs(b) != 1):
+                    continue
+                choices.add((e*weight, b*(y*y // gcd(x, y))))
+        totals = {(a+e, c+t) for a, c in totals for e, t in choices if a+e <= budget}
+    return (budget, -g) in totals
+
+
+def reference_passes(row):
+    g = row.count(1)
+    sizes = Counter(row)
+    del sizes[1]
+    total = sum(y*y for y in row)
+    for parts in reference_gradings(row):
+        neutral = sorted(set(parts[0]) - {1}, reverse=True)
+        if all(reference_column(x, sizes, g, total, "gcd")
+               and reference_blocks(x, sizes, g, total, len(row)) for x in neutral):
+            return True
+    return False
+
+
+def check_full_lists():
+    data = HERE / "data"
+    examples = read_types(data / "rank15-examples.txt")
+    for name, expected in (
+        ("rank14.txt", read_types(data / "rank14.txt")[:2]),
+        ("rank15.txt", read_types(data / "rank15-survivors.txt")),
+        ("rank15-examples.txt", [examples[i-1] for i in (1, 2, 4)]),
+        ("rank25-odd.txt", []),
+        ("rank25-odd-91.txt", []),
+    ):
+        rows = read_types(data / name)
+        kept = sorted(row for row in rows if reference_passes(row))
+        check(kept, sorted(expected), f"independent final list from {name}")
 
 
 def check_centers():
@@ -131,9 +292,15 @@ def check_centers():
 
 
 if __name__ == "__main__":
+    check_source_lists()
+    check_rank14_certificates()
+    check_rank25_certificates()
     check_columns()
     check_gradings()
     check_block_search()
     check_published_list()
+    check_full_lists()
     check_centers()
+    print("All five input digests and the rank-14 and odd rank-25 certificates agree.")
+    print("Independent full-list checks agree for ranks 14 and 15 and odd rank 25.")
     print("Column and block tests, grading partitions, the published list and four group centers agree.")

@@ -1,6 +1,11 @@
-Column orthogonality and low-rank integral modular categories
+A new criterion for integral modular categorification
 Jingcheng Dong and Sébastien Palcoux
 
-The revised code, data and reproduction instructions are in python/README.md.
-The computations run with the Python 3.9+ standard library.
+Code, data and instructions for reproducing the computations in the paper
+https://github.com/sebastienpalcoux/Fusion-Categories/blob/main/NewCritPaper/python/README.md
+
+Run python3 reproduce.py and python3 verify.py from the python/ directory
+with Python 3.9 or later. The programs use only the standard library.
+The input tables and the 358 surviving rank-15 types are in python/data/.
+
 Version20260715.pdf and Rank15/ accompany the earlier version of the paper.

@@ -69,7 +69,11 @@ def grading_partitions(dimensions, number_of_parts):
 
 def column_passes(x, noninvertible, invertibles, total, test):
     """Apply one of the three bounds to a hypothetical adjoint column x."""
+    if test not in ("single", "cover", "gcd"):
+        raise ValueError(f"unknown test: {test!r}")
     budget = total - invertibles * x * x
+    if budget < 0:
+        return False
     candidates = [(y, lcm(x, y) ** 2) for y in noninvertible]
     candidates = [(y, cost) for y, cost in candidates if cost <= budget]
     if test in ("single", "cover"):
@@ -90,14 +94,12 @@ def column_passes(x, noninvertible, invertibles, total, test):
 
         def accepts(state):
             return state == target
-    elif test == "gcd":
+    else:
         options = [(y * y // gcd(x, y), cost) for y, cost in candidates]
         join = gcd
 
         def accepts(state):
             return state > 0 and invertibles % state == 0
-    else:
-        raise ValueError(f"unknown test: {test!r}")
 
     # For each state keep the cheapest subset of dimensions producing it.
     # Repeating a dimension cannot improve a union or a gcd.
