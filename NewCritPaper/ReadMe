@@ -1,1 +1,6 @@
+Column orthogonality and low-rank integral modular categories
+Jingcheng Dong and Sébastien Palcoux
 
+The revised code, data and reproduction instructions are in python/README.md.
+The computations run with the Python 3.9+ standard library.
+Version20260715.pdf and Rank15/ accompany the earlier version of the paper.
